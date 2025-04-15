@@ -10,3 +10,4 @@ pydantic-settings = "^2.8.1"
 black = "^25.1.0"
 sqlalchemy = {extras = ["asyncio"], version = "^2.0.40"}
 asyncpg = "^0.30.0"
+alembic = "^1.15.2"
