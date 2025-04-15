@@ -7,7 +7,9 @@ fastapi = "^0.115.12"
 uvicorn = {extras = ["standart"], version = "^0.34.0"}
 pydantic = "^2.11.2"
 pydantic-settings = "^2.8.1"
-black = "^25.1.0"
 sqlalchemy = {extras = ["asyncio"], version = "^2.0.40"}
 asyncpg = "^0.30.0"
 alembic = "^1.15.2"
+
+[tool.poetry.group.dev.dependencies]
+black = "^24.4.2"
