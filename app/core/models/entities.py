@@ -243,7 +243,7 @@ class WorkspaceMember(Base):
         String(50),
         nullable=False,
         default="'pending'",
-        server_default=text("pending"),
+        server_default=text("'pending'"),
     )
 
     # Дата вступления в рабочее пространство
@@ -440,7 +440,7 @@ class QueueMember(Base):
         String(50),
         nullable=False,
         default="'active'",
-        server_default=text("active"),
+        server_default=text("'active'"),
     )
 
     # --- Связи ---

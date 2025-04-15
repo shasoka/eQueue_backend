@@ -1,8 +1,8 @@
 """Created entities
 
-Revision ID: 743758f8b617
+Revision ID: f98d2324451e
 Revises: 
-Create Date: 2025-04-16 00:39:24.295278
+Create Date: 2025-04-16 00:53:22.335284
 
 """
 
@@ -13,7 +13,7 @@ import sqlalchemy as sa
 
 
 # revision identifiers, used by Alembic.
-revision: str = "743758f8b617"
+revision: str = "f98d2324451e"
 down_revision: Union[str, None] = None
 branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
@@ -129,7 +129,7 @@ def upgrade() -> None:
         sa.Column(
             "status",
             sa.String(length=50),
-            server_default=sa.text("pending"),
+            server_default=sa.text("'pending'"),
             nullable=False,
         ),
         sa.Column(
@@ -204,7 +204,7 @@ def upgrade() -> None:
         sa.Column(
             "status",
             sa.String(length=50),
-            server_default=sa.text("active"),
+            server_default=sa.text("'active'"),
             nullable=False,
         ),
         sa.Column("id", sa.Integer(), autoincrement=True, nullable=False),
