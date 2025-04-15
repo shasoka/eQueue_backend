@@ -27,11 +27,13 @@ class DatabaseSetup:
             pool_size=pool_size,
         )
 
-        self.session_factory: async_sessionmaker[AsyncSession] = async_sessionmaker(
-            bind=self.engine,
-            autoflush=False,
-            autocommit=False,
-            expire_on_commit=False,
+        self.session_factory: async_sessionmaker[AsyncSession] = (
+            async_sessionmaker(
+                bind=self.engine,
+                autoflush=False,
+                autocommit=False,
+                expire_on_commit=False,
+            )
         )
 
     async def dispose(self) -> None:
