@@ -210,7 +210,6 @@ class Workspace(Base):
         UniqueConstraint(
             "group_id",
             "name",
-            name="uq_workspace_gid_name",
         ),
     )
 
@@ -280,7 +279,6 @@ class WorkspaceMember(Base):
         UniqueConstraint(
             "user_id",
             "workspace_id",
-            name="uq_workspace_member_uid_wid",
         ),
     )
 
@@ -361,14 +359,12 @@ class Subject(Base):
         UniqueConstraint(
             "workspace_id",
             "name",
-            name="uq_subject_wid_name",
         ),
         # Уникальность ecourses_id в рамках одного рабочего пространства
         # Только если ecourses_id НЕ NULL (частично индексируемое ограничение)
         UniqueConstraint(
             "workspace_id",
             "ecourses_id",
-            name="uq_subject_wid_eid",
         ),
     )
 
@@ -471,7 +467,6 @@ class QueueMember(Base):
         UniqueConstraint(
             "user_id",
             "queue_id",
-            name="uq_queue_member_uid_qid",
         ),
     )
 
@@ -521,7 +516,6 @@ class Task(Base):
         UniqueConstraint(
             "subject_id",
             "name",
-            name="uq_task_sid_name",
         ),
     )
 
@@ -574,6 +568,5 @@ class Submission(Base):
         UniqueConstraint(
             "user_id",
             "task_id",
-            name="uq_submisson_uid_tid",
         ),
     )

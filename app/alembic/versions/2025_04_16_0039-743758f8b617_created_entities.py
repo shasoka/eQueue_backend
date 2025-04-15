@@ -1,8 +1,8 @@
 """Created entities
 
-Revision ID: 7a9227c8a8a2
+Revision ID: 743758f8b617
 Revises: 
-Create Date: 2025-04-15 22:22:19.456579
+Create Date: 2025-04-16 00:39:24.295278
 
 """
 
@@ -13,7 +13,7 @@ import sqlalchemy as sa
 
 
 # revision identifiers, used by Alembic.
-revision: str = "7a9227c8a8a2"
+revision: str = "743758f8b617"
 down_revision: Union[str, None] = None
 branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
@@ -87,7 +87,9 @@ def upgrade() -> None:
             name=op.f("fk_workspaces_group_id_groups"),
         ),
         sa.PrimaryKeyConstraint("id", name=op.f("pk_workspaces")),
-        sa.UniqueConstraint("group_id", "name", name="uq_workspace_gid_name"),
+        sa.UniqueConstraint(
+            "group_id", "name", name=op.f("uq_workspaces_group_id_name")
+        ),
     )
     op.create_table(
         "subjects",
@@ -106,10 +108,12 @@ def upgrade() -> None:
         ),
         sa.PrimaryKeyConstraint("id", name=op.f("pk_subjects")),
         sa.UniqueConstraint(
-            "workspace_id", "ecourses_id", name="uq_subject_wid_eid"
+            "workspace_id",
+            "ecourses_id",
+            name=op.f("uq_subjects_workspace_id_ecourses_id"),
         ),
         sa.UniqueConstraint(
-            "workspace_id", "name", name="uq_subject_wid_name"
+            "workspace_id", "name", name=op.f("uq_subjects_workspace_id_name")
         ),
     )
     op.create_table(
@@ -125,7 +129,7 @@ def upgrade() -> None:
         sa.Column(
             "status",
             sa.String(length=50),
-            server_default=sa.text("'pending'"),
+            server_default=sa.text("pending"),
             nullable=False,
         ),
         sa.Column(
@@ -147,7 +151,9 @@ def upgrade() -> None:
         ),
         sa.PrimaryKeyConstraint("id", name=op.f("pk_workspace_members")),
         sa.UniqueConstraint(
-            "user_id", "workspace_id", name="uq_workspace_member_uid_wid"
+            "user_id",
+            "workspace_id",
+            name=op.f("uq_workspace_members_user_id_workspace_id"),
         ),
     )
     op.create_table(
@@ -180,7 +186,9 @@ def upgrade() -> None:
             name=op.f("fk_tasks_subject_id_subjects"),
         ),
         sa.PrimaryKeyConstraint("id", name=op.f("pk_tasks")),
-        sa.UniqueConstraint("subject_id", "name", name="uq_task_sid_name"),
+        sa.UniqueConstraint(
+            "subject_id", "name", name=op.f("uq_tasks_subject_id_name")
+        ),
     )
     op.create_table(
         "queue_members",
@@ -196,7 +204,7 @@ def upgrade() -> None:
         sa.Column(
             "status",
             sa.String(length=50),
-            server_default=sa.text("'active'"),
+            server_default=sa.text("active"),
             nullable=False,
         ),
         sa.Column("id", sa.Integer(), autoincrement=True, nullable=False),
@@ -212,7 +220,9 @@ def upgrade() -> None:
         ),
         sa.PrimaryKeyConstraint("id", name=op.f("pk_queue_members")),
         sa.UniqueConstraint(
-            "user_id", "queue_id", name="uq_queue_member_uid_qid"
+            "user_id",
+            "queue_id",
+            name=op.f("uq_queue_members_user_id_queue_id"),
         ),
     )
     op.create_table(
@@ -237,7 +247,9 @@ def upgrade() -> None:
             name=op.f("fk_submissions_user_id_users"),
         ),
         sa.PrimaryKeyConstraint("id", name=op.f("pk_submissions")),
-        sa.UniqueConstraint("user_id", "task_id", name="uq_submisson_uid_tid"),
+        sa.UniqueConstraint(
+            "user_id", "task_id", name=op.f("uq_submissions_user_id_task_id")
+        ),
     )
     # ### end Alembic commands ###
 
