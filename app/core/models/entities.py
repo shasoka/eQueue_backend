@@ -1,15 +1,16 @@
 from datetime import datetime, timezone
 from sqlalchemy import (
-    String,
     Boolean,
     ForeignKey,
+    String,
     Text,
     TIMESTAMP,
     func,
     text,
-    UniqueConstraint,
 )
 from sqlalchemy.orm import Mapped, mapped_column, relationship
+from sqlalchemy.schema import UniqueConstraint
+
 from .base import Base
 
 
