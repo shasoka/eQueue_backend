@@ -1,5 +1,4 @@
-import requests
-
+import httpx
 from urllib.parse import quote_plus as url_encode
 
 from core.config import settings
@@ -8,52 +7,48 @@ from moodle import validate
 
 
 async def auth_by_moodle_credentials(credentials: UserLogin) -> str:
-    # Отправка запроса
-    response = requests.get(
-        settings.moodle.auth_url
-        % (
-            url_encode(credentials.login),  # login
-            url_encode(credentials.password),  # password
-        ),
-    )
+    async with httpx.AsyncClient() as client:
+        response = await client.get(
+            settings.moodle.auth_url
+            % (
+                url_encode(credentials.login),
+                url_encode(credentials.password),
+            )
+        )
+        response_json = response.json()
 
-    # Получение ответа
-    response = response.json()
-    # Проверка ответа
     await validate(
-        response=response,
+        response=response_json,
         error_key="error",
         message_key="error",
     )
 
-    # Возврат токена
-    return response["token"]
+    return response_json["token"]
 
 
 async def get_moodle_user_info(token: str) -> UserInfoFromEcourses:
-    # Отправка запроса
-    response = requests.get(
-        settings.moodle.get_user_info_url % url_encode(token),
-    )
+    async with httpx.AsyncClient() as client:
+        response = await client.get(
+            settings.moodle.get_user_info_url % url_encode(token),
+        )
+        response_json = response.json()
 
-    # Получение ответа
-    response = response.json()
-    # Проверка ответа
-    await validate(response)
+    await validate(response_json)
 
-    # Возврат необходимых полей
     return UserInfoFromEcourses(
         token=token,
-        ecourses_id=response["userid"],
-        first_name=response["firstname"],
-        second_name=response["lastname"],
-        profile_pic_url=response["userpictureurl"],
+        ecourses_id=response_json["userid"],
+        first_name=response_json["firstname"],
+        second_name=response_json["lastname"],
+        profile_pic_url=response_json["userpictureurl"],
     )
 
 
 async def token_persistence(token: str) -> None:
-    response = requests.get(
-        settings.moodle.get_user_info_url % url_encode(token),
-    )
-    response = response.json()
-    await validate(response)
+    async with httpx.AsyncClient() as client:
+        response = await client.get(
+            settings.moodle.get_user_info_url % url_encode(token),
+        )
+        response_json = response.json()
+
+    await validate(response_json)
