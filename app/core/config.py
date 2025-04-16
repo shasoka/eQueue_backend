@@ -2,14 +2,48 @@ from pydantic import BaseModel
 from pydantic import PostgresDsn
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
+__all__ = ("settings",)
+
 
 class Run(BaseModel):
     host: str = "0.0.0.0"
     port: int = 8000
 
 
-class ApiPrefix(BaseModel):
+class ApiUsers(BaseModel):
+    prefix: str = "/users"
+    tags: list[str] = ["Users"]
+
+    # --- Endpoints ---
+
+    login: str = "/moodle_auth"
+
+
+class ApiBase(BaseModel):
     prefix: str = "/api"
+    tags: list[str] = ["eQueue Api"]
+
+    # --- Sub-routers ---
+
+    users: ApiUsers = ApiUsers()
+
+
+class MoodleAPI(BaseModel):
+    ecourses_base_url: str = "https://e.sfu-kras.ru/webservice/rest/server.php"
+
+    auth_url: str = (
+        "https://e.sfu-kras.ru/login/token.php"
+        "?service=moodle_mobile_app"
+        "&username=%s"
+        "&password=%s"
+    )
+
+    get_user_info_url: str = (
+        f"{ecourses_base_url}"
+        f"?wstoken=%s"
+        f"&wsfunction=core_webservice_get_site_info"
+        f"&moodlewsrestformat=json"
+    )
 
 
 class Database(BaseModel):
@@ -37,12 +71,9 @@ class Settings(BaseSettings):
     )
 
     run: Run = Run()
-    api: ApiPrefix = ApiPrefix()
+    api: ApiBase = ApiBase()
+    moodle: MoodleAPI = MoodleAPI()
     db: Database
 
 
-settings = Settings()
-
-__all__ = [
-    "settings",
-]
+settings: Settings = Settings()

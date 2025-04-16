@@ -13,7 +13,7 @@ from .entities import (
 )
 
 
-__all__ = [
+__all__ = (
     "db_helper",
     "Base",
     "User",
@@ -25,4 +25,4 @@ __all__ = [
     "QueueMember",
     "Task",
     "Submission",
-]
+)

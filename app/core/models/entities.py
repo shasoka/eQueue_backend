@@ -68,7 +68,7 @@ class User(Base):
     created_at: Mapped[datetime] = mapped_column(
         TIMESTAMP(),
         nullable=False,
-        default=datetime.now(timezone.utc),
+        default=datetime.utcnow,
         server_default=func.now(),
     )
 
@@ -76,8 +76,8 @@ class User(Base):
     updated_at: Mapped[datetime] = mapped_column(
         TIMESTAMP(),
         nullable=False,
-        default=datetime.now(timezone.utc),
-        onupdate=datetime.now(timezone.utc),
+        default=datetime.utcnow,
+        onupdate=datetime.utcnow,
         server_default=func.now(),
     )
 
@@ -167,7 +167,7 @@ class Workspace(Base):
     created_at: Mapped[datetime] = mapped_column(
         TIMESTAMP(),
         nullable=False,
-        default=datetime.now(timezone.utc),
+        default=datetime.utcnow,
         server_default=func.now(),
     )
 
@@ -175,8 +175,8 @@ class Workspace(Base):
     updated_at: Mapped[datetime] = mapped_column(
         TIMESTAMP(),
         nullable=False,
-        default=datetime.now(timezone.utc),
-        onupdate=datetime.now(timezone.utc),
+        default=datetime.utcnow,
+        onupdate=datetime.utcnow,
         server_default=func.now(),
     )
 
@@ -252,7 +252,7 @@ class WorkspaceMember(Base):
     joined_at: Mapped[datetime] = mapped_column(
         TIMESTAMP(),
         nullable=False,
-        default=datetime.now(timezone.utc),
+        default=datetime.utcnow,
         server_default=func.now(),
     )
 
@@ -426,7 +426,7 @@ class QueueMember(Base):
     entered_at: Mapped[datetime] = mapped_column(
         TIMESTAMP(),
         nullable=False,
-        default=datetime.now(timezone.utc),
+        default=datetime.utcnow,
         server_default=func.now(),
     )
 
@@ -540,7 +540,7 @@ class Submission(Base):
     submitted_at: Mapped[datetime] = mapped_column(
         TIMESTAMP(),
         nullable=False,
-        default=datetime.now(timezone.utc),
+        default=datetime.utcnow,
         server_default=func.now(),
     )
 
