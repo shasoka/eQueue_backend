@@ -12,16 +12,26 @@ from fastapi.security import OAuth2PasswordRequestForm
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from core.config import settings
-from core.models import db_helper
+from core.models import db_helper, User
 from core.schemas.users import (
     UserAuth,
     UserInfoFromEcourses,
     UserLogin,
     UserCreate,
     UserUpdate,
+    UserRead,
 )
-from crud.users import get_user_by_ecourses_id, create_user, update_user
-from moodle.auth import auth_by_moodle_credentials, get_moodle_user_info
+from crud.users import (
+    get_user_by_ecourses_id,
+    create_user,
+    update_user,
+    get_user_by_id as _get_user_by_id,
+)
+from moodle.auth import (
+    auth_by_moodle_credentials,
+    get_current_user,
+    get_moodle_user_info,
+)
 
 __all__ = ("router",)
 
@@ -63,9 +73,18 @@ async def login_user(
             session=session,
             user=registered_user,
             user_upd=UserUpdate(
-                token=token,
+                access_token=token,
             ),
         )
 
     # Возвращаем пользователя с token и token_type
     return UserAuth.model_validate(user.to_dict()).model_dump()
+
+
+@router.get("/{id}", response_model=UserRead)
+async def get_user_by_id(
+    id: int,
+    _: Annotated[User, Depends(get_current_user)],
+    session: Annotated[AsyncSession, Depends(db_helper.session_getter)],
+) -> UserRead | None:
+    return await _get_user_by_id(session=session, id=id)

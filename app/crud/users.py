@@ -4,7 +4,11 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from .groups import get_group_by_id
 from core.models import User, Group
 from core.schemas.users import UserCreate, UserUpdate
-from core.exceptions import ForeignKeyViolation, UniqueConstraintViolation
+from core.exceptions import (
+    ForeignKeyViolationException,
+    NoEntityFoundException,
+    UniqueConstraintViolationException,
+)
 
 
 __all__ = (
@@ -12,7 +16,10 @@ __all__ = (
     "update_user",
     "get_user_by_ecourses_id",
     "create_user",
+    "get_user_by_id",
 )
+
+type UoN = User | None
 
 # --- Проверка ограничений ---
 
@@ -21,7 +28,7 @@ async def check_foreign_key_group_id(
     session: AsyncSession, group_id: int
 ) -> None:
     if not await get_group_by_id(session, group_id):
-        raise ForeignKeyViolation(
+        raise ForeignKeyViolationException(
             f"Нарушено ограничение внешнего ключа group_id: "
             f"значение {group_id} не существует в столбце id таблицы groups."
         )
@@ -31,7 +38,7 @@ async def check_unique_ecourses_id(
     session: AsyncSession, ecourses_id: int
 ) -> None:
     if await get_user_by_ecourses_id(session, ecourses_id):
-        raise UniqueConstraintViolation(
+        raise UniqueConstraintViolationException(
             f"Нарушено ограничение уникальности столбца ecourses_id: "
             f"значение {ecourses_id} уже существует в столбце ecourses_id таблицы users."
         )
@@ -39,7 +46,7 @@ async def check_unique_ecourses_id(
 
 async def check_unique_token(session: AsyncSession, token: str) -> None:
     if await get_user_by_token(session, token):
-        raise UniqueConstraintViolation(
+        raise UniqueConstraintViolationException(
             "Нарушено ограничение уникальности столбца token: "
             "переданное значение токена уже существует в столбце token таблицы users."
         )
@@ -51,7 +58,7 @@ async def check_unique_token(session: AsyncSession, token: str) -> None:
 async def create_user(
     session: AsyncSession,
     user_in: UserCreate,
-) -> User | None:
+) -> UoN:
     # Распаковка pydantic-модели в SQLAlchemy-модель
     user: User = User(**user_in.model_dump())
 
@@ -65,7 +72,7 @@ async def create_user(
     await check_unique_ecourses_id(session, user.ecourses_id)
 
     # Проверка уникальности token
-    await check_unique_token(session, user.token)
+    await check_unique_token(session, user.access_token)
 
     # ---
 
@@ -79,20 +86,35 @@ async def create_user(
 # --- Read ---
 
 
+async def get_user_by_id(
+    session: AsyncSession,
+    id: int,
+) -> UoN:
+    if user := await session.get(User, id):
+        return user
+    raise NoEntityFoundException(f"Пользователь с id={id} не найден")
+
+
 async def get_user_by_ecourses_id(
     session: AsyncSession,
     ecourses_id: int,
-) -> User | None:
+) -> UoN:
     stmt: Select = select(User).where(User.ecourses_id == ecourses_id)
-    return (await session.scalars(stmt)).one_or_none()
+    if user := (await session.scalars(stmt)).one_or_none():
+        return user
+    raise NoEntityFoundException(
+        f"Пользователь с ecourses_id={ecourses_id} не найден"
+    )
 
 
 async def get_user_by_token(
     session: AsyncSession,
     token: str,
-) -> User | None:
-    stmt: Select = select(User).where(User.token == token)
-    return (await session.scalars(stmt)).one_or_none()
+) -> UoN:
+    stmt: Select = select(User).where(User.access_token == token)
+    if user := (await session.scalars(stmt)).one_or_none():
+        return user
+    raise NoEntityFoundException(f"Пользователь с таким token не найден")
 
 
 # --- Update ---
@@ -102,7 +124,7 @@ async def update_user(
     session: AsyncSession,
     user: User,
     user_upd: UserUpdate,
-) -> User | None:
+) -> UoN:
     # Исключение не заданных явно атрибутов
     user_upd: dict = user_upd.model_dump(exclude_unset=True)
 

@@ -16,7 +16,7 @@ __all__ = (
 
 
 class TokenMixin(BaseModel):
-    token: str
+    access_token: str
 
 
 class UserBase(BaseModel):
@@ -42,7 +42,7 @@ class UserRead(UserBase):
 
 
 class UserUpdate(BaseModel):
-    token: str | None = None
+    access_token: str | None = None
     group_id: int | None = None
     profile_status: str | None = None
     profile_pic_url: str | None = None
@@ -58,7 +58,7 @@ class UserLogin(BaseModel):
 
 
 class UserInfoFromEcourses(BaseModel):
-    token: str
+    access_token: str
     ecourses_id: int
     first_name: str
     second_name: str

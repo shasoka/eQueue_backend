@@ -1,6 +1,10 @@
-class ForeignKeyViolation(Exception):
+class ForeignKeyViolationException(Exception):
     pass
 
 
-class UniqueConstraintViolation(Exception):
+class UniqueConstraintViolationException(Exception):
+    pass
+
+
+class NoEntityFoundException(Exception):
     pass

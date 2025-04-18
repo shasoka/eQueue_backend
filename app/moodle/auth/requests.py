@@ -39,7 +39,7 @@ async def get_moodle_user_info(token: str) -> UserInfoFromEcourses:
     response_json: dict = await check_token_persistence(token)
 
     return UserInfoFromEcourses(
-        token=token,
+        access_token=token,
         ecourses_id=response_json["userid"],
         first_name=response_json["firstname"],
         second_name=response_json["lastname"],

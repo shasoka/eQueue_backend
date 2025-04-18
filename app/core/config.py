@@ -23,6 +23,10 @@ class ApiBase(BaseModel):
     prefix: str = "/api"
     tags: list[str] = ["eQueue Api"]
 
+    # --- OAuth2 Login endpoint
+
+    token_url: str = "/api/users/moodle_auth"
+
     # --- Sub-routers ---
 
     users: ApiUsers = ApiUsers()
