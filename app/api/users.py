@@ -12,7 +12,6 @@ from fastapi.security import OAuth2PasswordRequestForm
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from core.config import settings
-from core.exceptions import ForeignKeyViolation, UniqueConstraintViolation
 from core.models import db_helper
 from core.schemas.users import (
     UserAuth,
@@ -54,25 +53,19 @@ async def login_user(
         )
     ):
         # Если пользователь не зарегистрирован, создаем его
-        try:
-            user = await create_user(
-                session=session,
-                user_in=UserCreate(**(user_info.model_dump())),
-            )
-        except (ForeignKeyViolation, UniqueConstraintViolation) as e:
-            raise HTTPException(status_code=409, detail=str(e))
+        user = await create_user(
+            session=session,
+            user_in=UserCreate(**(user_info.model_dump())),
+        )
     else:
         # Если пользователь зарегистрирован, обновляем его токен
-        try:
-            user = await update_user(
-                session=session,
-                user=registered_user,
-                user_upd=UserUpdate(
-                    token=token,
-                ),
-            )
-        except (ForeignKeyViolation, UniqueConstraintViolation) as e:
-            raise HTTPException(status_code=409, detail=str(e))
+        user = await update_user(
+            session=session,
+            user=registered_user,
+            user_upd=UserUpdate(
+                token=token,
+            ),
+        )
 
     # Возвращаем пользователя с token и token_type
     return UserAuth.model_validate(user.to_dict()).model_dump()
