@@ -25,7 +25,8 @@ type UoN = User | None
 
 
 async def check_foreign_key_group_id(
-    session: AsyncSession, group_id: int
+    session: AsyncSession,
+    group_id: int,
 ) -> None:
     if not await get_group_by_id(session, group_id):
         raise ForeignKeyViolationException(
@@ -35,9 +36,20 @@ async def check_foreign_key_group_id(
 
 
 async def check_unique_ecourses_id(
-    session: AsyncSession, ecourses_id: int
+    session: AsyncSession,
+    ecourses_id: int,
+    on_login: bool = False,
 ) -> None:
-    if await get_user_by_ecourses_id(session, ecourses_id):
+    """
+    Функция, проверяющая уникальность значения столбца ecourses_id в таблице users.
+
+    :param session: Сессия подключения к БД.
+    :param ecourses_id: Значение столбца ecourses_id.
+    :param on_login: Флаг, указывающий, следует ли функции получения пользователя по
+                     ecourses_id возвращать None или бросать исключение.
+    """
+
+    if await get_user_by_ecourses_id(session, ecourses_id, on_login):
         raise UniqueConstraintViolationException(
             f"Нарушено ограничение уникальности столбца ecourses_id: "
             f"значение {ecourses_id} уже существует в столбце ecourses_id таблицы users."
@@ -45,9 +57,11 @@ async def check_unique_ecourses_id(
 
 
 async def check_unique_access_token(
-    session: AsyncSession, access_token: str
+    session: AsyncSession,
+    access_token: str,
+    on_login: bool = False,
 ) -> None:
-    if await get_user_by_access_token(session, access_token):
+    if await get_user_by_access_token(session, access_token, on_login):
         raise UniqueConstraintViolationException(
             "Нарушено ограничение уникальности столбца access_token: "
             "переданное значение токена уже существует в столбце access_token таблицы users."
@@ -61,20 +75,23 @@ async def create_user(
     session: AsyncSession,
     user_in: UserCreate,
 ) -> UoN:
+    """
+    Функция создания новой сущностти пользователя. Вызывается при первом входе пользователя в систему.
+    """
+
     # Распаковка pydantic-модели в SQLAlchemy-модель
     user: User = User(**user_in.model_dump())
 
     # --- Ограничения уникальности ---
 
-    # Проверка существования группы до записи пользователя в БД
-    if user.group_id:
-        await check_foreign_key_group_id(session, user.group_id)
+    # Проверка группы опущена, т.к. создание пользователя происходит при
+    # его первом входе
 
     # Проверка уникальности ecourses_id
-    await check_unique_ecourses_id(session, user.ecourses_id)
+    await check_unique_ecourses_id(session, user.ecourses_id, True)
 
     # Проверка уникальности access_token
-    await check_unique_access_token(session, user.access_token)
+    await check_unique_access_token(session, user.access_token, True)
 
     # ---
 
@@ -98,27 +115,44 @@ async def get_user_by_id(
 
 
 async def get_user_by_ecourses_id(
-    session: AsyncSession,
-    ecourses_id: int,
+    session: AsyncSession, ecourses_id: int, on_login: bool = False
 ) -> UoN:
+    """
+    Функция, получающая пользователя по значению столбца ecourses_id.
+
+    Возвращает None, если пользователь впервые авторизуется в системе.
+
+    :param session: Сессия подключения к БД.
+    :param ecourses_id: Значение столбца ecourses_id.
+    :param on_login: Флаг, указывающий, следует ли функции возвращать None или
+                     бросать исключение.
+    """
+
     stmt: Select = select(User).where(User.ecourses_id == ecourses_id)
     if user := (await session.scalars(stmt)).one_or_none():
         return user
-    raise NoEntityFoundException(
-        f"Пользователь с ecourses_id={ecourses_id} не найден"
-    )
+    else:
+        if on_login:
+            return None
+        raise NoEntityFoundException(
+            f"Пользователь с ecourses_id={ecourses_id} не найден"
+        )
 
 
 async def get_user_by_access_token(
     session: AsyncSession,
     access_token: str,
+    on_login: bool = False,
 ) -> UoN:
     stmt: Select = select(User).where(User.access_token == access_token)
     if user := (await session.scalars(stmt)).one_or_none():
         return user
-    raise NoEntityFoundException(
-        f"Пользователь с таким access_token не найден"
-    )
+    else:
+        if on_login:
+            return None
+        raise NoEntityFoundException(
+            f"Пользователь с таким access_token не найден"
+        )
 
 
 # --- Update ---

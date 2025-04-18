@@ -36,8 +36,9 @@ from moodle.auth import (
     get_moodle_user_info,
 )
 
-__all__ = ("router",)
+from moodle.users import upload_new_profile_avatar
 
+__all__ = ("router",)
 
 router = APIRouter()
 
@@ -65,6 +66,7 @@ async def login_user(
         registered_user := await get_user_by_ecourses_id(
             session=session,
             ecourses_id=user_info.ecourses_id,
+            on_login=True,
         )
     ):
         # Если пользователь не зарегистрирован, создаем его
@@ -100,10 +102,47 @@ async def am_i_alive(
     )
 
 
-@router.get("/{id}", response_model=UserRead)
-async def get_user_by_id(
-    id: int,
-    _: Annotated[User, Depends(get_current_user)],
+@router.get("", response_model=UserRead)
+async def get_current_user_info(
+    current_user: Annotated[User, Depends(get_current_user)],
     session: Annotated[AsyncSession, Depends(db_helper.session_getter)],
 ) -> UserRead | None:
-    return await _get_user_by_id(session=session, id=id)
+    return await _get_user_by_id(session=session, id=current_user.id)
+
+
+@router.patch("", response_model=UserRead)
+async def partial_update_current_user(
+    user_upd: UserUpdate,
+    current_user: Annotated[User, Depends(get_current_user)],
+    session: Annotated[AsyncSession, Depends(db_helper.session_getter)],
+) -> User:
+    return await update_user(
+        session=session,
+        user=current_user,
+        user_upd=user_upd,
+    )
+
+
+@router.patch(settings.api.users.avatar, response_model=UserRead)
+async def upload_avatar(
+    file: Annotated[UploadFile, File(...)],
+    session: Annotated[AsyncSession, Depends(db_helper.session_getter)],
+    current_user: Annotated[User, Depends(get_current_user)],
+) -> User:
+    new_profile_pic_url: str = await upload_new_profile_avatar(
+        token=current_user.access_token,
+        files={
+            "filedata": (
+                file.filename,
+                file.file,
+                file.content_type,
+            ),
+        },
+    )
+    return await update_user(
+        session=session,
+        user=current_user,
+        user_upd=UserUpdate(
+            profile_pic_url=new_profile_pic_url,
+        ),
+    )

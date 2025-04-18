@@ -18,6 +18,7 @@ class ApiUsers(BaseModel):
 
     login: str = "/moodle_auth"
     alive: str = "/am_i_alive"
+    avatar: str = "/upload_avatar"
 
 
 class ApiBase(BaseModel):
@@ -48,6 +49,12 @@ class MoodleAPI(BaseModel):
         f"?wstoken=%s"
         f"&wsfunction=core_webservice_get_site_info"
         f"&moodlewsrestformat=json"
+    )
+
+    upload_file: str = (
+        "https://e.sfu-kras.ru/webservice/upload.php"
+        "?token=%s"
+        "&filearea=draft"
     )
 
 
