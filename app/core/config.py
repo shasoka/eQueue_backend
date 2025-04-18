@@ -76,4 +76,5 @@ class Settings(BaseSettings):
     db: Database
 
 
+# noinspection PyArgumentList
 settings: Settings = Settings()
