@@ -1,6 +1,8 @@
 import httpx
 from urllib.parse import quote_plus as url_encode
 
+from httpx import Response
+
 from core.config import settings
 from core.schemas.users import UserLogin, UserInfoFromEcourses
 from moodle import validate
@@ -10,14 +12,19 @@ from core.middlewares.logs import logger
 
 async def auth_by_moodle_credentials(credentials: UserLogin) -> str:
     async with httpx.AsyncClient() as client:
-        response = await client.get(
-            settings.moodle.auth_url
-            % (
-                url_encode(credentials.login),
-                url_encode(credentials.password),
-            )
+        url: str = settings.moodle.auth_url % (
+            url_encode(credentials.login),
+            url_encode(credentials.password),
         )
+
+        response = await client.get(url)
         response_json = response.json()
+
+    logger.info(
+        "Intermediate request to %s: %s",
+        url,
+        response_json,
+    )
 
     await validate(
         response=response_json,
@@ -29,13 +36,7 @@ async def auth_by_moodle_credentials(credentials: UserLogin) -> str:
 
 
 async def get_moodle_user_info(token: str) -> UserInfoFromEcourses:
-    async with httpx.AsyncClient() as client:
-        response = await client.get(
-            settings.moodle.get_user_info_url % url_encode(token),
-        )
-        response_json = response.json()
-
-    await validate(response_json)
+    response_json: dict = await check_token_persistence(token)
 
     return UserInfoFromEcourses(
         token=token,
@@ -46,11 +47,18 @@ async def get_moodle_user_info(token: str) -> UserInfoFromEcourses:
     )
 
 
-async def token_persistence(token: str) -> None:
+async def check_token_persistence(token: str) -> dict:
     async with httpx.AsyncClient() as client:
-        response = await client.get(
-            settings.moodle.get_user_info_url % url_encode(token),
-        )
-        response_json = response.json()
+        url: str = settings.moodle.get_user_info_url % url_encode(token)
+        response: Response = await client.get(url)
+        response_json: dict = response.json()
+
+    logger.info(
+        "Intermediate request to %s: %s",
+        url,
+        response_json,
+    )
 
     await validate(response_json)
+
+    return response_json
