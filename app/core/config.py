@@ -57,6 +57,8 @@ class MoodleAPI(BaseModel):
         "&filearea=draft"
     )
 
+    timetable_url: str = "https://edu.sfu-kras.ru/api/timetable/get_insts"
+
 
 class Database(BaseModel):
     url: PostgresDsn

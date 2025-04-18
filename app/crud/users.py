@@ -1,22 +1,21 @@
 from sqlalchemy import select, Select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from .groups import get_group_by_id
-from core.models import User, Group
+from core.models import User
 from core.schemas.users import UserCreate, UserUpdate
 from core.exceptions import (
     ForeignKeyViolationException,
     NoEntityFoundException,
     UniqueConstraintViolationException,
 )
-
+from .groups import get_group_by_id
 
 __all__ = (
-    "get_user_by_access_token",
-    "update_user",
-    "get_user_by_ecourses_id",
     "create_user",
+    "get_user_by_access_token",
+    "get_user_by_ecourses_id",
     "get_user_by_id",
+    "update_user",
 )
 
 type UoN = User | None
