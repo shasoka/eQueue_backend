@@ -17,6 +17,7 @@ class ApiUsers(BaseModel):
     # --- Endpoints ---
 
     login: str = "/moodle_auth"
+    alive: str = "/am_i_alive"
 
 
 class ApiBase(BaseModel):

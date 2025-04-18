@@ -16,11 +16,7 @@ class MoodleOAuth2(OAuth2PasswordBearer):
     async def validate_access_token(
         access_token: str, session: AsyncSession
     ) -> User | None:
-        if not (user := await get_user_by_access_token(session, access_token)):
-            raise InternalAccessTokenException(
-                "Пользователь с таким токеном не найден"
-            )
-        return user
+        return await get_user_by_access_token(session, access_token)
 
 
 oauth2_scheme = MoodleOAuth2(

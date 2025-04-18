@@ -7,7 +7,9 @@ from fastapi import (
     HTTPException,
     UploadFile,
     File,
+    status,
 )
+from fastapi.responses import ORJSONResponse
 from fastapi.security import OAuth2PasswordRequestForm
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -29,6 +31,7 @@ from crud.users import (
 )
 from moodle.auth import (
     auth_by_moodle_credentials,
+    check_access_token_persistence,
     get_current_user,
     get_moodle_user_info,
 )
@@ -81,6 +84,20 @@ async def login_user(
 
     # Возвращаем пользователя с access_token и token_type
     return UserAuth.model_validate(user.to_dict()).model_dump()
+
+
+@router.head(settings.api.users.alive)
+async def am_i_alive(
+    current_user: Annotated[User, Depends(get_current_user)],
+) -> ORJSONResponse:
+    await check_access_token_persistence(
+        access_token=current_user.access_token
+    )
+    return ORJSONResponse(
+        status_code=status.HTTP_200_OK,
+        content={},
+        headers={"Token-Alive": "true"},
+    )
 
 
 @router.get("/{id}", response_model=UserRead)
