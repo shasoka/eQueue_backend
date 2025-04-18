@@ -1,0 +1,31 @@
+{
+  "users": {
+    "login_user": {
+      "responses": {
+        "401": {
+          "description": "Authorization error",
+          "content": {
+            "application/json": {
+              "example": {
+                "message": "Ошибка при попытке авторизации через еКурсы",
+                "error": "Ответ от еКурсов: {...}"
+              },
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "message": {
+                    "type": "string"
+                  },
+                  "error": {
+                    "type": "string"
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "description": "### Эндпоинт авторизации пользователя через [`e.sfu-kras.ru`](https://e.sfu-kras.ru/).\n\n\nАвторизация происходит в соответствии со спецификацией `OpenAPI` [`OAuth2`](https://oauth.net/2/).\nВходной json должен иметь следующую структуру:\n```json\n{\n    \"username\": \"username\",\n    \"password\": \"password\"\n}\n```\n\n\n\nВ случае успеха возвращается json с полями:\n```json\n{\n\t\"access_token\": \"token\",\n\t\"token_type\": \"Bearer\",\n\t...\n}\n```\n\n\nAPI [`e.sfu-kras.ru`](https://e.sfu-kras.ru/) предоставляет метод для авторизации, эндпоинт которого выглядит следующим образом: \n***https://e.sfu-kras.ru/login/token.php?service=moodle_mobile_app&username=username&password=password***, \nгде `username` и `password` - логин и пароль пользователя в системе электронного обучения СФУ.\n\n\n\nПосле авторизации данный эндпоинт получает дополнительные данные пользователя (имя, фамилия, id в системе электронного обучения СФУ) при помощи следующего эндпоинта:\n***https://e.sfu-kras.ru/webservice/rest/server.php?wstoken=access_token&wsfunction=core_webservice_get_site_info&moodlewsrestformat=json***, где `access_token` - токен доступа, полученный после авторизации.\n\n\n\nПолученный токен в дальнейшем используется как для доступа к данному API, так и для доступа к API [`e.sfu-kras.ru`](https://e.sfu-kras.ru/).\n"
+    }
+  }
+}

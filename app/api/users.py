@@ -1,41 +1,40 @@
-from typing import Annotated
+"""Модуль, реализующий эндпоинты для работы с сущностью User."""
 
 from fastapi import (
     APIRouter,
     Depends,
-    Response,
-    HTTPException,
-    UploadFile,
     File,
     status,
+    UploadFile,
 )
 from fastapi.responses import ORJSONResponse
 from fastapi.security import OAuth2PasswordRequestForm
 from sqlalchemy.ext.asyncio import AsyncSession
+from typing import Annotated
 
 from core.config import settings
 from core.models import db_helper, User
 from core.schemas.users import (
     UserAuth,
+    UserCreate,
     UserInfoFromEcourses,
     UserLogin,
-    UserCreate,
-    UserUpdate,
     UserRead,
+    UserUpdate,
 )
 from crud.users import (
-    get_user_by_ecourses_id,
     create_user,
-    update_user,
+    get_user_by_ecourses_id,
     get_user_by_id as _get_user_by_id,
+    update_user,
 )
+from docs import login_user_docs
 from moodle.auth import (
     auth_by_moodle_credentials,
     check_access_token_persistence,
     get_current_user,
     get_moodle_user_info,
 )
-
 from moodle.users import upload_new_profile_avatar
 
 __all__ = ("router",)
@@ -43,7 +42,13 @@ __all__ = ("router",)
 router = APIRouter()
 
 
-@router.post(settings.api.users.login, response_model=UserAuth)
+@router.post(
+    settings.api.users.login,
+    response_model=UserAuth,
+    summary="Авторизация через e.sfu-kras.ru",
+    description=login_user_docs["description"],
+    responses=login_user_docs["responses"],
+)
 async def login_user(
     credentials: Annotated[OAuth2PasswordRequestForm, Depends()],
     session: Annotated[AsyncSession, Depends(db_helper.session_getter)],
