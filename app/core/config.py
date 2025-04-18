@@ -25,7 +25,7 @@ class ApiBase(BaseModel):
 
     # --- OAuth2 Login endpoint
 
-    token_url: str = "/api/users/moodle_auth"
+    access_token_url: str = "/api/users/moodle_auth"
 
     # --- Sub-routers ---
 

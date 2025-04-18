@@ -2,8 +2,8 @@ from fastapi import FastAPI, Request, status
 from fastapi.responses import ORJSONResponse
 
 from . import (
-    InternalTokenException,
-    MoodleTokenException,
+    InternalAccessTokenException,
+    MoodleAccessTokenException,
     NoEntityFoundException,
 )
 from .orm_exceptions import (
@@ -57,8 +57,8 @@ def register_exceptions_handlers(app: FastAPI) -> None:
         )
 
     # noinspection PyUnusedLocal
-    @app.exception_handler(MoodleTokenException)
-    async def handle_moodle_token_exception(
+    @app.exception_handler(MoodleAccessTokenException)
+    async def handle_moodle_access_token_exception(
         request: Request,
         exc: UniqueConstraintViolationException,
     ) -> ORJSONResponse:
@@ -71,10 +71,10 @@ def register_exceptions_handlers(app: FastAPI) -> None:
         )
 
     # noinspection PyUnusedLocal
-    @app.exception_handler(InternalTokenException)
-    async def handle_internal_token_exception(
+    @app.exception_handler(InternalAccessTokenException)
+    async def handle_internal_access_token_exception(
         request: Request,
-        exc: InternalTokenException,
+        exc: InternalAccessTokenException,
     ) -> ORJSONResponse:
         return ORJSONResponse(
             status_code=status.HTTP_403_FORBIDDEN,

@@ -4,7 +4,7 @@ from pydantic import BaseModel
 
 
 __all__ = (
-    "TokenMixin",
+    "AccessTokenMixin",
     "UserBase",
     "UserCreate",
     "UserRead",
@@ -15,7 +15,7 @@ __all__ = (
 )
 
 
-class TokenMixin(BaseModel):
+class AccessTokenMixin(BaseModel):
     access_token: str
 
 
@@ -31,7 +31,7 @@ class UserBase(BaseModel):
     profile_pic_url: str
 
 
-class UserCreate(UserBase, TokenMixin):
+class UserCreate(UserBase, AccessTokenMixin):
     pass
 
 
@@ -48,7 +48,7 @@ class UserUpdate(BaseModel):
     profile_pic_url: str | None = None
 
 
-class UserAuth(UserRead, TokenMixin):
+class UserAuth(UserRead, AccessTokenMixin):
     token_type: str = "Bearer"
 
 

@@ -35,11 +35,11 @@ async def auth_by_moodle_credentials(credentials: UserLogin) -> str:
     return response_json["token"]
 
 
-async def get_moodle_user_info(token: str) -> UserInfoFromEcourses:
-    response_json: dict = await check_token_persistence(token)
+async def get_moodle_user_info(access_token: str) -> UserInfoFromEcourses:
+    response_json: dict = await check_access_token_persistence(access_token)
 
     return UserInfoFromEcourses(
-        access_token=token,
+        access_token=access_token,
         ecourses_id=response_json["userid"],
         first_name=response_json["firstname"],
         second_name=response_json["lastname"],
@@ -47,9 +47,9 @@ async def get_moodle_user_info(token: str) -> UserInfoFromEcourses:
     )
 
 
-async def check_token_persistence(token: str) -> dict:
+async def check_access_token_persistence(access_token: str) -> dict:
     async with httpx.AsyncClient() as client:
-        url: str = settings.moodle.get_user_info_url % url_encode(token)
+        url: str = settings.moodle.get_user_info_url % url_encode(access_token)
         response: Response = await client.get(url)
         response_json: dict = response.json()
 

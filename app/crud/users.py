@@ -12,7 +12,7 @@ from core.exceptions import (
 
 
 __all__ = (
-    "get_user_by_token",
+    "get_user_by_access_token",
     "update_user",
     "get_user_by_ecourses_id",
     "create_user",
@@ -44,11 +44,13 @@ async def check_unique_ecourses_id(
         )
 
 
-async def check_unique_token(session: AsyncSession, token: str) -> None:
-    if await get_user_by_token(session, token):
+async def check_unique_access_token(
+    session: AsyncSession, access_token: str
+) -> None:
+    if await get_user_by_access_token(session, access_token):
         raise UniqueConstraintViolationException(
-            "Нарушено ограничение уникальности столбца token: "
-            "переданное значение токена уже существует в столбце token таблицы users."
+            "Нарушено ограничение уникальности столбца access_token: "
+            "переданное значение токена уже существует в столбце access_token таблицы users."
         )
 
 
@@ -71,8 +73,8 @@ async def create_user(
     # Проверка уникальности ecourses_id
     await check_unique_ecourses_id(session, user.ecourses_id)
 
-    # Проверка уникальности token
-    await check_unique_token(session, user.access_token)
+    # Проверка уникальности access_token
+    await check_unique_access_token(session, user.access_token)
 
     # ---
 
@@ -107,14 +109,16 @@ async def get_user_by_ecourses_id(
     )
 
 
-async def get_user_by_token(
+async def get_user_by_access_token(
     session: AsyncSession,
-    token: str,
+    access_token: str,
 ) -> UoN:
-    stmt: Select = select(User).where(User.access_token == token)
+    stmt: Select = select(User).where(User.access_token == access_token)
     if user := (await session.scalars(stmt)).one_or_none():
         return user
-    raise NoEntityFoundException(f"Пользователь с таким token не найден")
+    raise NoEntityFoundException(
+        f"Пользователь с таким access_token не найден"
+    )
 
 
 # --- Update ---

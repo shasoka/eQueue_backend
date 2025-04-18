@@ -1,6 +1,6 @@
 from fastapi import HTTPException
 
-from core.exceptions import MoodleTokenException
+from core.exceptions import MoodleAccessTokenException
 
 
 async def validate(
@@ -30,6 +30,6 @@ async def validate(
     """
 
     if error_key in response:
-        raise MoodleTokenException(
+        raise MoodleAccessTokenException(
             "Ответ от еКурсов: " + response[message_key]
         )

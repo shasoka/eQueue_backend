@@ -45,7 +45,7 @@ async def login_user(
     session: Annotated[AsyncSession, Depends(db_helper.session_getter)],
 ):
     # Попытка авторизовать пользователя через e.sfu-kras.ru/login
-    token = await auth_by_moodle_credentials(
+    access_token = await auth_by_moodle_credentials(
         UserLogin(
             login=credentials.username,
             password=credentials.password,
@@ -53,7 +53,9 @@ async def login_user(
     )
 
     # При успешной авторизации получаем информацию о пользователе
-    user_info: UserInfoFromEcourses = await get_moodle_user_info(token=token)
+    user_info: UserInfoFromEcourses = await get_moodle_user_info(
+        access_token=access_token
+    )
 
     # Проверка зарегистрирован ли пользователь в системе
     if not (
@@ -73,11 +75,11 @@ async def login_user(
             session=session,
             user=registered_user,
             user_upd=UserUpdate(
-                access_token=token,
+                access_token=access_token,
             ),
         )
 
-    # Возвращаем пользователя с token и token_type
+    # Возвращаем пользователя с access_token и token_type
     return UserAuth.model_validate(user.to_dict()).model_dump()
 
 
