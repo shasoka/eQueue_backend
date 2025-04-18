@@ -5,6 +5,8 @@ from core.config import settings
 from core.schemas.users import UserLogin, UserInfoFromEcourses
 from moodle import validate
 
+from core.middlewares.logs import logger
+
 
 async def auth_by_moodle_credentials(credentials: UserLogin) -> str:
     async with httpx.AsyncClient() as client:

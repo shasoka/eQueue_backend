@@ -1,5 +1,7 @@
 from fastapi import HTTPException
 
+from core.exceptions import MoodleTokenException
+
 
 async def validate(
     response: dict,
@@ -24,12 +26,10 @@ async def validate(
 
     :param response: JSON-ответ от еКурсов.
     :param error_key: Ключ, по которому проверяется наличие ошибки.
-    :param message_key: Ключ, по которому в JSON находится сообщение об
-            ошибке.
+    :param message_key: Ключ, по которому в JSON находится сообщение об ошибке.
     """
 
     if error_key in response:
-        raise HTTPException(
-            status_code=401,
-            detail="Ответ от еКурсов: " + response[message_key],
+        raise MoodleTokenException(
+            "Ответ от еКурсов: " + response[message_key]
         )

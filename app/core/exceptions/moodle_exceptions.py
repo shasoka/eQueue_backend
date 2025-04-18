@@ -1,0 +1,2 @@
+class MoodleTokenException(Exception):
+    pass

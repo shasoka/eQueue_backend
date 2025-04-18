@@ -1,5 +1,7 @@
 from fastapi import FastAPI, Request, status
 from fastapi.responses import ORJSONResponse
+
+from . import MoodleTokenException
 from .orm_exceptions import UniqueConstraintViolation, ForeignKeyViolation
 
 
@@ -29,6 +31,20 @@ def register_exceptions_handlers(app: FastAPI) -> None:
             status_code=status.HTTP_409_CONFLICT,
             content={
                 "message": "Наруешние ограничения внешнего ключа",
+                "error": str(exc),
+            },
+        )
+
+    # noinspection PyUnusedLocal
+    @app.exception_handler(MoodleTokenException)
+    async def handle_moodle_token_exception(
+        request: Request,
+        exc: UniqueConstraintViolation,
+    ) -> ORJSONResponse:
+        return ORJSONResponse(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            content={
+                "message": "Ошибка при попытке авторизации через еКурсы",
                 "error": str(exc),
             },
         )
