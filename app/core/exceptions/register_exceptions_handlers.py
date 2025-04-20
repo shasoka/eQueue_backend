@@ -2,8 +2,7 @@ from fastapi import FastAPI, Request, status
 from fastapi.responses import ORJSONResponse
 
 from . import (
-    InternalAccessTokenException,
-    MoodleAccessTokenException,
+    AccessTokenException,
     NoEntityFoundException,
 )
 from .orm_exceptions import (
@@ -46,7 +45,7 @@ def register_exceptions_handlers(app: FastAPI) -> None:
     @app.exception_handler(ForeignKeyViolationException)
     async def handle_foreign_key_violation_exception(
         request: Request,
-        exc: UniqueConstraintViolationException,
+        exc: ForeignKeyViolationException,
     ) -> ORJSONResponse:
         return ORJSONResponse(
             status_code=status.HTTP_409_CONFLICT,
@@ -57,29 +56,15 @@ def register_exceptions_handlers(app: FastAPI) -> None:
         )
 
     # noinspection PyUnusedLocal
-    @app.exception_handler(MoodleAccessTokenException)
-    async def handle_moodle_access_token_exception(
+    @app.exception_handler(AccessTokenException)
+    async def handle_access_token_exception(
         request: Request,
-        exc: UniqueConstraintViolationException,
+        exc: AccessTokenException,
     ) -> ORJSONResponse:
         return ORJSONResponse(
             status_code=status.HTTP_401_UNAUTHORIZED,
             content={
-                "message": "Ошибка при попытке авторизации через еКурсы",
-                "error": str(exc),
-            },
-        )
-
-    # noinspection PyUnusedLocal
-    @app.exception_handler(InternalAccessTokenException)
-    async def handle_internal_access_token_exception(
-        request: Request,
-        exc: InternalAccessTokenException,
-    ) -> ORJSONResponse:
-        return ORJSONResponse(
-            status_code=status.HTTP_403_FORBIDDEN,
-            content={
-                "message": "Ошибка при попытке авторизации в eQueue",
+                "message": "Пользователь не авторизован",
                 "error": str(exc),
             },
             headers={"Token-Alive": "false"},

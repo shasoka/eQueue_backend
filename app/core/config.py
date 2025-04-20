@@ -21,6 +21,11 @@ class ApiUsers(BaseModel):
     avatar: str = "/upload_avatar"
 
 
+class ApiGroups(BaseModel):
+    prefix: str = "/groups"
+    tags: list[str] = ["Groups"]
+
+
 class ApiBase(BaseModel):
     prefix: str = "/api"
     tags: list[str] = ["eQueue Api"]
@@ -32,6 +37,7 @@ class ApiBase(BaseModel):
     # --- Sub-routers ---
 
     users: ApiUsers = ApiUsers()
+    groups: ApiGroups = ApiGroups()
 
 
 class MoodleAPI(BaseModel):

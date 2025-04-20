@@ -1,9 +1,9 @@
 from fastapi import HTTPException
 
-from core.exceptions import MoodleAccessTokenException
+from core.exceptions import AccessTokenException
 
 
-async def validate(
+async def is_token_still_alive(
     response: dict,
     error_key: str = "exception",
     message_key: str = "message",
@@ -30,6 +30,6 @@ async def validate(
     """
 
     if error_key in response:
-        raise MoodleAccessTokenException(
+        raise AccessTokenException(
             "Ответ от еКурсов: " + response[message_key]
         )

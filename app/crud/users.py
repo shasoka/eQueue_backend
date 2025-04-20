@@ -18,8 +18,6 @@ __all__ = (
     "update_user",
 )
 
-type UoN = User | None
-
 # --- Проверка ограничений ---
 
 
@@ -73,7 +71,7 @@ async def check_unique_access_token(
 async def create_user(
     session: AsyncSession,
     user_in: UserCreate,
-) -> UoN:
+) -> User | None:
     """
     Функция создания новой сущностти пользователя. Вызывается при первом входе пользователя в систему.
     """
@@ -107,7 +105,7 @@ async def create_user(
 async def get_user_by_id(
     session: AsyncSession,
     id: int,
-) -> UoN:
+) -> User | None:
     if user := await session.get(User, id):
         return user
     raise NoEntityFoundException(f"Пользователь с id={id} не найден")
@@ -115,7 +113,7 @@ async def get_user_by_id(
 
 async def get_user_by_ecourses_id(
     session: AsyncSession, ecourses_id: int, on_login: bool = False
-) -> UoN:
+) -> User | None:
     """
     Функция, получающая пользователя по значению столбца ecourses_id.
 
@@ -142,7 +140,7 @@ async def get_user_by_access_token(
     session: AsyncSession,
     access_token: str,
     on_login: bool = False,
-) -> UoN:
+) -> User | None:
     stmt: Select = select(User).where(User.access_token == access_token)
     if user := (await session.scalars(stmt)).one_or_none():
         return user
@@ -161,7 +159,7 @@ async def update_user(
     session: AsyncSession,
     user: User,
     user_upd: UserUpdate,
-) -> UoN:
+) -> User | None:
     # Исключение не заданных явно атрибутов
     user_upd: dict = user_upd.model_dump(exclude_unset=True)
 

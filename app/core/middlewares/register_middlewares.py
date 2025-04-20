@@ -65,6 +65,12 @@ def register_middlewares(app: FastAPI) -> None:
                 "Response [%s]: <non-JSON body>",
                 response.status_code,
             )
+        delimiter: str = "-" * 50
+        logger.info(
+            "%s End of request chain %s",
+            delimiter,
+            delimiter,
+        )
 
         return Response(
             content=response_body,

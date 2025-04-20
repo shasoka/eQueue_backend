@@ -3,7 +3,7 @@ from urllib.parse import quote_plus as url_encode
 from httpx import Response
 
 from core.config import settings
-from moodle import validate
+from moodle import is_token_still_alive
 from core.middlewares.logs import logger
 
 
@@ -24,7 +24,7 @@ async def upload_new_profile_avatar(
     )
 
     if not isinstance(response_json, list):
-        await validate(response_json)
+        await is_token_still_alive(response_json)
 
     response_data = response_json[0]
     draftitemid = response_data.get("itemid")
@@ -50,6 +50,8 @@ async def upload_new_profile_avatar(
         response_json,
     )
 
-    await validate(response_json, error_key="error", message_key="error")
+    await is_token_still_alive(
+        response_json, error_key="error", message_key="error"
+    )
 
     return response_json.get("profileimageurl")

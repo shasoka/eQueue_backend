@@ -1,6 +1,2 @@
-class MoodleAccessTokenException(Exception):
-    pass
-
-
-class InternalAccessTokenException(Exception):
+class AccessTokenException(Exception):
     pass

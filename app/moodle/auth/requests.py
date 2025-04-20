@@ -5,7 +5,7 @@ from httpx import Response
 
 from core.config import settings
 from core.schemas.users import UserLogin, UserInfoFromEcourses
-from moodle import validate
+from moodle import is_token_still_alive
 
 from core.middlewares.logs import logger
 
@@ -26,7 +26,7 @@ async def auth_by_moodle_credentials(credentials: UserLogin) -> str:
         response_json,
     )
 
-    await validate(
+    await is_token_still_alive(
         response=response_json,
         error_key="error",
         message_key="error",
@@ -54,11 +54,11 @@ async def check_access_token_persistence(access_token: str) -> dict:
         response_json: dict = response.json()
 
     logger.info(
-        "Intermediate request to %s: %s",
+        "[TKN_HLTH_CHCK] Intermediate request to %s: %s",
         url,
         response_json,
     )
 
-    await validate(response_json)
+    await is_token_still_alive(response_json)
 
     return response_json

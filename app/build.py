@@ -23,6 +23,8 @@ def build_fastapi_app() -> FastAPI:
     app = FastAPI(
         default_response_class=ORJSONResponse,
         lifespan=lifespan,
+        title="eQueue API",
+        summary="Шенберг Аркадий Алексеевич пытается в backend...",
     )
 
     app.include_router(api_router)
