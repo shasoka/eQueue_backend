@@ -30,6 +30,8 @@ def register_middlewares(app: FastAPI) -> None:
                 parsed_body = orjson.loads(body)
             except Exception:
                 parsed_body = "<invalid json>"
+        elif "multipart/form-data" in content_type:
+            parsed_body = "<multipart/form-data>"
         else:
             parsed_body = body.decode("utf-8", errors="replace")
 
