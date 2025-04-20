@@ -1,8 +1,7 @@
-from typing import Any, Coroutine, List, Sequence
+from typing import List
 
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy.orm import selectinload
 
 from core.exceptions import NoEntityFoundException
 from core.models import Group
@@ -26,3 +25,6 @@ async def get_all_groups(
     session: AsyncSession,
 ) -> List[Group]:
     return list((await session.execute(select(Group))).scalars().all())
+
+
+# ---
