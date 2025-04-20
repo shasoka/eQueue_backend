@@ -25,6 +25,12 @@ def build_fastapi_app() -> FastAPI:
         lifespan=lifespan,
         title="eQueue API",
         summary="Шенберг Аркадий Алексеевич пытается в backend...",
+        swagger_ui_parameters={
+            "syntaxHighlight": {
+                "theme": "obsidian",
+            }
+        },
+        redoc_url=None,
     )
 
     app.include_router(api_router)
