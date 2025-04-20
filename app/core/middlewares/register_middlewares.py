@@ -12,6 +12,18 @@ def register_middlewares(app: FastAPI) -> None:
 
     # noinspection PyUnusedLocal
     @app.middleware("http")
+    async def add_proc_time_header(
+        request: Request,
+        call_next: Callable[[Request], Awaitable[Response]],
+    ) -> Response:
+        start_time: float = time.perf_counter()
+        response: Response = await call_next(request)
+        proc_time: float = time.perf_counter() - start_time
+        response.headers["X-Process-Time"] = f"{proc_time:.5f}"
+        return response
+
+    # noinspection PyUnusedLocal
+    @app.middleware("http")
     async def log_incoming_request(
         request: Request,
         call_next: Callable[[Request], Awaitable[Response]],
@@ -56,14 +68,16 @@ def register_middlewares(app: FastAPI) -> None:
             json_body = orjson.loads(response_body)
             compact_json = orjson.dumps(json_body).decode("utf-8")
             logger.info(
-                "Response [%s]: %s",
+                "Response [%s in %s sec]: %s",
                 response.status_code,
+                response.headers["X-Process-Time"],
                 compact_json,
             )
         except Exception:
             logger.info(
-                "Response [%s]: <non-JSON body>",
+                "Response [%s in %s sec]: <non-JSON body>",
                 response.status_code,
+                response.headers["X-Process-Time"],
             )
         delimiter: str = "-" * 50
         logger.info(
@@ -78,15 +92,3 @@ def register_middlewares(app: FastAPI) -> None:
             headers=dict(response.headers),
             media_type=response.media_type,
         )
-
-    # noinspection PyUnusedLocal
-    @app.middleware("http")
-    async def add_proc_time_header(
-        request: Request,
-        call_next: Callable[[Request], Awaitable[Response]],
-    ) -> Response:
-        start_time: float = time.perf_counter()
-        response: Response = await call_next(request)
-        proc_time: float = time.perf_counter() - start_time
-        response.headers["X-Process-Time"] = f"{proc_time:.5f}"
-        return response
