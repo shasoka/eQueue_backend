@@ -1,13 +1,12 @@
 from fastapi import FastAPI, Request, status
 from fastapi.responses import ORJSONResponse
 
-from . import (
+from core.exceptions import (
     AccessTokenException,
     NoEntityFoundException,
-)
-from .orm_exceptions import (
     UniqueConstraintViolationException,
     ForeignKeyViolationException,
+    GroupIDMismatchException,
 )
 
 
@@ -68,4 +67,18 @@ def register_exceptions_handlers(app: FastAPI) -> None:
                 "error": str(exc),
             },
             headers={"Token-Alive": "false"},
+        )
+
+    # noinspection PyUnusedLocal
+    @app.exception_handler(GroupIDMismatchException)
+    async def handle_group_id_mismatch_exception(
+        request: Request,
+        exc: GroupIDMismatchException,
+    ) -> ORJSONResponse:
+        return ORJSONResponse(
+            status_code=status.HTTP_403_FORBIDDEN,
+            content={
+                "message": "Доступ запрещен",
+                "error": str(exc),
+            },
         )

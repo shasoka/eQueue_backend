@@ -1,0 +1,2 @@
+class GroupIDMismatchException(Exception):
+    pass

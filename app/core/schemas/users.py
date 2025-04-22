@@ -1,11 +1,9 @@
-import datetime
+from datetime import datetime
 
 from pydantic import BaseModel
 
 
 __all__ = (
-    "AccessTokenMixin",
-    "UserBase",
     "UserCreate",
     "UserRead",
     "UserUpdate",
@@ -37,8 +35,8 @@ class UserCreate(UserBase, AccessTokenMixin):
 
 class UserRead(UserBase):
     id: int
-    created_at: datetime.datetime
-    updated_at: datetime.datetime
+    created_at: datetime
+    updated_at: datetime
 
 
 class UserUpdate(BaseModel):
