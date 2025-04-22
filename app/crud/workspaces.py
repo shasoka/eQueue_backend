@@ -37,7 +37,7 @@ async def check_complex_unique_group_id_name(
         )
 
 
-async def check_user_group_id_matches_to_workspace_group_id(
+async def check_user_group_id_matches_with_workspace_group_id(
     user_group_id: int | None,
     workspace_group_id: int,
 ) -> bool:
@@ -62,7 +62,7 @@ async def create_workspace(
 
     # --- Ограничение на создание рабочего пространства для пользователя ---
 
-    await check_user_group_id_matches_to_workspace_group_id(
+    await check_user_group_id_matches_with_workspace_group_id(
         user_group_id=current_user_group_id,
         workspace_group_id=workspace.group_id,
     )
