@@ -48,7 +48,11 @@ async def get_group_by_id(
     _: Annotated[User, Depends(get_current_user)],
     session: Annotated[AsyncSession, Depends(db_helper.session_getter)],
 ) -> Group:
-    return await _get_group_by_id(session=session, group_id=id)
+    return await _get_group_by_id(
+        session=session,
+        group_id=id,
+        constraint_check=False,
+    )
 
 
 @router.get("", response_model=List[GroupRead])
