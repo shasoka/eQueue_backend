@@ -32,5 +32,5 @@ async def create_workspace(
     return await _create_workspace(
         session=session,
         workspace_in=workspace_in,
-        current_user_group_id=current_user.group_id,
+        current_user=current_user,
     )

@@ -37,8 +37,12 @@ async def get_group_by_id(
     if group := await session.get(Group, group_id):
         return group
     elif constraint_check:
+        # Возвращаем None для того, чтобы функция check_foreign_key_group_id
+        # выбросила свое исключение
         return None
     else:
+        # В противном случае выбрасываем исключение, так как группа не
+        # найдена при попытке ее получения
         raise NoEntityFoundException(f"Группа с id={group_id} не найдена")
 
 

@@ -112,7 +112,11 @@ async def get_current_user_info(
     current_user: Annotated[User, Depends(get_current_user)],
     session: Annotated[AsyncSession, Depends(db_helper.session_getter)],
 ) -> UserRead | None:
-    return await _get_user_by_id(session=session, id=current_user.id)
+    return await _get_user_by_id(
+        session=session,
+        id=current_user.id,
+        constraint_check=False,
+    )
 
 
 @router.patch("", response_model=UserRead)

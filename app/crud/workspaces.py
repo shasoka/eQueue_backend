@@ -4,17 +4,34 @@ from sqlalchemy import select, Select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from core.exceptions import (
+    ForeignKeyViolationException,
     GroupIDMismatchException,
     NoEntityFoundException,
     UniqueConstraintViolationException,
 )
-from core.models import Workspace
+from core.models import User, Workspace
 
 __all__ = ()
 
+from core.schemas.workspace_members import WorkspaceMemberCreate
+
 from core.schemas.workspaces import WorkspaceCreate
 
-from crud import check_foreign_key_group_id
+from .groups import check_foreign_key_group_id
+
+
+# --- Проверка ограничений внешнего ключа ---
+
+
+async def check_foreign_key_workspace_id(
+    session: AsyncSession,
+    workspace_id: int,
+) -> None:
+    if not await get_workspace_by_id(session, workspace_id):
+        raise ForeignKeyViolationException(
+            f"Нарушено ограничение внешнего ключа workspace_id: "
+            f"значение {workspace_id} не существует в столбце id таблицы workspaces."
+        )
 
 
 # --- Проверка ограничений ---
@@ -55,7 +72,7 @@ async def check_user_group_id_matches_with_workspace_group_id(
 async def create_workspace(
     session: AsyncSession,
     workspace_in: WorkspaceCreate,
-    current_user_group_id: int | None,
+    current_user: User,
 ) -> Workspace | None:
     # Распаковка pydantic-модели в SQLAlchemy-модель
     workspace: Workspace = Workspace(**workspace_in.model_dump())
@@ -63,7 +80,7 @@ async def create_workspace(
     # --- Ограничение на создание рабочего пространства для пользователя ---
 
     await check_user_group_id_matches_with_workspace_group_id(
-        user_group_id=current_user_group_id,
+        user_group_id=current_user.group_id,
         workspace_group_id=workspace.group_id,
     )
 
@@ -85,7 +102,42 @@ async def create_workspace(
     session.add(workspace)
     await session.commit()
     await session.refresh(workspace)
+
+    # Запись члена рабочего пространства в БД
+
+    # Во избежание циклического импорта
+    from .workspace_members import create_workspace_member
+
+    await create_workspace_member(
+        session=session,
+        workspace_member_in=WorkspaceMemberCreate(
+            is_admin=True,
+            status="approved",
+            user_id=current_user.id,
+            workspace_id=workspace.id,
+        ),
+    )
+
     return workspace
 
 
 # --- Read ---
+
+
+async def get_workspace_by_id(
+    session: AsyncSession,
+    workspace_id: int,
+    constraint_check: bool = True,
+) -> Workspace | None:
+    if workspace := await session.get(Workspace, workspace_id):
+        return workspace
+    elif constraint_check:
+        # Возвращаем None для того, чтобы функция check_foreign_key_group_id
+        # выбросила свое исключение
+        return None
+    else:
+        # В противном случае выбрасываем исключение, так как рабочее
+        # пространство не найдено при попытке его получения
+        raise NoEntityFoundException(
+            f"Рабочее пространство с id={workspace_id} не найдено"
+        )

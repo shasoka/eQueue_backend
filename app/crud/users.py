@@ -4,10 +4,11 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from core.models import User
 from core.schemas.users import UserCreate, UserUpdate
 from core.exceptions import (
+    ForeignKeyViolationException,
     NoEntityFoundException,
     UniqueConstraintViolationException,
 )
-from . import check_foreign_key_group_id
+from .groups import check_foreign_key_group_id
 
 __all__ = (
     "create_user",
@@ -16,6 +17,21 @@ __all__ = (
     "get_user_by_id",
     "update_user",
 )
+
+
+# --- Проверка ограничений внешнего ключа ---
+
+
+async def check_foreign_key_user_id(
+    session: AsyncSession,
+    user_id: int,
+) -> None:
+    if not await get_user_by_id(session, user_id):
+        raise ForeignKeyViolationException(
+            f"Нарушено ограничение внешнего ключа user_id: "
+            f"значение {user_id} не существует в столбце id таблицы users."
+        )
+
 
 # --- Проверка ограничений ---
 
@@ -93,10 +109,18 @@ async def create_user(
 async def get_user_by_id(
     session: AsyncSession,
     id: int,
+    constraint_check: bool = True,
 ) -> User | None:
     if user := await session.get(User, id):
         return user
-    raise NoEntityFoundException(f"Пользователь с id={id} не найден")
+    elif constraint_check:
+        # Возвращаем None для того, чтобы функция check_foreign_key_user_id
+        # выбросила свое исключение
+        return None
+    else:
+        # В противном случае выбрасываем исключение, так как пользователь не
+        # найден при попытке его получения
+        raise NoEntityFoundException(f"Пользователь с id={id} не найден")
 
 
 async def get_user_by_ecourses_id(
@@ -116,9 +140,9 @@ async def get_user_by_ecourses_id(
     stmt: Select = select(User).where(User.ecourses_id == ecourses_id)
     if user := (await session.scalars(stmt)).one_or_none():
         return user
+    elif on_login:
+        return None
     else:
-        if on_login:
-            return None
         raise NoEntityFoundException(
             f"Пользователь с ecourses_id={ecourses_id} не найден"
         )
@@ -132,9 +156,9 @@ async def get_user_by_access_token(
     stmt: Select = select(User).where(User.access_token == access_token)
     if user := (await session.scalars(stmt)).one_or_none():
         return user
+    elif on_login:
+        return None
     else:
-        if on_login:
-            return None
         raise NoEntityFoundException(
             f"Пользователь с таким access_token не найден"
         )
