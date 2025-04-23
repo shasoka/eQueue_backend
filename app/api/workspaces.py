@@ -6,6 +6,7 @@ from fastapi import (
 )
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from core.config import settings
 from core.models import db_helper, User
 from core.schemas.workspaces import (
     WorkspaceCreate,
@@ -17,6 +18,7 @@ from crud.workspaces import (
     delete_workspace as _delete_workspace,
     get_workspace_by_id as _get_workspace_by_id,
     update_workspace,
+    get_workspaces_which_user_is_member_of as _get_workspaces_which_user_is_member_of,
 )
 
 from moodle.auth import get_current_user
@@ -38,6 +40,20 @@ async def create_workspace(
         session=session,
         workspace_in=workspace_in,
         current_user=current_user,
+    )
+
+
+@router.get(
+    settings.api.workspaces.subscribed,
+    response_model=list[WorkspaceRead],
+)
+async def get_workspaces_which_user_is_member_of(
+    current_user: Annotated[User, Depends(get_current_user)],
+    session: Annotated[AsyncSession, Depends(db_helper.session_getter)],
+) -> list[WorkspaceRead]:
+    return await _get_workspaces_which_user_is_member_of(
+        session=session,
+        user_id=current_user.id,
     )
 
 

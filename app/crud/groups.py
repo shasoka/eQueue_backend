@@ -1,5 +1,3 @@
-from typing import List
-
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -48,7 +46,7 @@ async def get_group_by_id(
 
 async def get_all_groups(
     session: AsyncSession,
-) -> List[Group]:
+) -> list[Group]:
     return list((await session.execute(select(Group))).scalars().all())
 
 

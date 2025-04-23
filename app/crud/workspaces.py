@@ -9,8 +9,7 @@ from core.exceptions import (
     NoEntityFoundException,
     UniqueConstraintViolationException,
 )
-from core.models import Group, User, Workspace
-
+from core.models import Group, User, Workspace, WorkspaceMember
 
 from core.schemas.workspace_members import WorkspaceMemberCreate
 
@@ -193,6 +192,32 @@ async def get_workspace_by_id(
         raise NoEntityFoundException(
             f"Рабочее пространство с id={workspace_id} не найдено"
         )
+
+
+async def get_workspaces_which_user_is_member_of(
+    session: AsyncSession,
+    user_id: int,
+) -> list[WorkspaceRead]:
+    # Во избежание циклического импорта
+    from .workspace_members import get_workspace_members_by_user_id
+
+    user_memberships: list[WorkspaceMember] = (
+        await get_workspace_members_by_user_id(
+            session=session,
+            user_id=user_id,
+        )
+    )
+
+    workspaces: list[WorkspaceRead] = []
+    for workspace_member in user_memberships:
+        workspaces.append(
+            await get_workspace_by_id(
+                session=session,
+                workspace_id=workspace_member.workspace_id,
+            )
+        )
+
+    return workspaces
 
 
 # --- Update ---

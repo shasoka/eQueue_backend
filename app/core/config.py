@@ -30,6 +30,10 @@ class ApiWorkspaces(BaseModel):
     prefix: str = "/workspaces"
     tags: list[str] = ["Workspaces"]
 
+    # --- Endpoints ---
+
+    subscribed: str = "/subscribed"
+
 
 class ApiWorkspaceMembers(BaseModel):
     prefix: str = "/workspace_members"

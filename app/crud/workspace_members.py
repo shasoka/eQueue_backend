@@ -143,6 +143,23 @@ async def get_workspace_member_by_id(
     )
 
 
+async def get_workspace_members_by_user_id(
+    session: AsyncSession,
+    user_id: int,
+) -> list[WorkspaceMember]:
+    return list(
+        (
+            await session.execute(
+                select(WorkspaceMember).where(
+                    WorkspaceMember.user_id == user_id
+                )
+            )
+        )
+        .scalars()
+        .all()
+    )
+
+
 async def get_workspace_members_count_by_workspace_id(
     session: AsyncSession,
     workspace_id: int,
