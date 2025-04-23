@@ -1,3 +1,5 @@
+from typing import Literal
+
 from sqlalchemy import func, Select, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -152,6 +154,36 @@ async def get_workspace_members_by_user_id(
             await session.execute(
                 select(WorkspaceMember).where(
                     WorkspaceMember.user_id == user_id
+                )
+            )
+        )
+        .scalars()
+        .all()
+    )
+
+
+async def get_workspace_members_by_workspace_id_and_status(
+    session: AsyncSession,
+    workspace_id: int,
+    user_id: int,
+    status: Literal["approved", "pending", "rejected"] = "approved",
+) -> list[WorkspaceMember]:
+
+    # Проверка прав администратора, для получения членов рабочего пространства
+    # с учетом статуса
+    if status in ("pending", "rejected"):
+        await check_if_user_is_workspace_admin(
+            session=session,
+            user_id=user_id,
+            workspace_id=workspace_id,
+        )
+
+    return list(
+        (
+            await session.execute(
+                select(WorkspaceMember).where(
+                    WorkspaceMember.workspace_id == workspace_id,
+                    WorkspaceMember.status == status,
                 )
             )
         )
