@@ -17,6 +17,7 @@ from crud.workspaces import (
     create_workspace as _create_workspace,
     get_workspace_by_id as _get_workspace_by_id,
     update_workspace,
+    delete_workspace as _delete_workspace,
 )
 
 __all__ = ("router",)
@@ -59,4 +60,21 @@ async def partial_update_workspace(
     _: Annotated[User, Depends(get_current_user)],
     session: Annotated[AsyncSession, Depends(db_helper.session_getter)],
 ) -> WorkspaceRead:
-    return await update_workspace(session, workspace_upd, id)
+    return await update_workspace(
+        session=session,
+        workspace_upd=workspace_upd,
+        workspace_id=id,
+    )
+
+
+@router.delete("/{id}", response_model=WorkspaceRead)
+async def delete_workspace(
+    id: int,
+    current_user: Annotated[User, Depends(get_current_user)],
+    session: Annotated[AsyncSession, Depends(db_helper.session_getter)],
+) -> WorkspaceRead | None:
+    return await _delete_workspace(
+        session=session,
+        user_id=current_user.id,
+        workspace_id=id,
+    )

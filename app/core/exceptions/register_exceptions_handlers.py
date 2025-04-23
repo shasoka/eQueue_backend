@@ -7,6 +7,7 @@ from core.exceptions import (
     UniqueConstraintViolationException,
     ForeignKeyViolationException,
     GroupIDMismatchException,
+    UserIsNotWorkspaceAdminException,
 )
 
 
@@ -71,7 +72,8 @@ def register_exceptions_handlers(app: FastAPI) -> None:
 
     # noinspection PyUnusedLocal
     @app.exception_handler(GroupIDMismatchException)
-    async def handle_group_id_mismatch_exception(
+    @app.exception_handler(UserIsNotWorkspaceAdminException)
+    async def handle_business_logic_exceptions(
         request: Request,
         exc: GroupIDMismatchException,
     ) -> ORJSONResponse:

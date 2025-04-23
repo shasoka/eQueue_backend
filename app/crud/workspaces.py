@@ -241,3 +241,41 @@ async def update_workspace(
     await session.commit()
     await session.refresh(workspace_orm_model)
     return workspace_pydantic_model
+
+
+# --- Delete ---
+
+
+async def delete_workspace(
+    session: AsyncSession,
+    user_id: int,
+    workspace_id: int,
+) -> WorkspaceRead | None:
+
+    # Получение рабочего пространства включает проверку на его существование
+    workspace_pydantic_model: WorkspaceRead = await get_workspace_by_id(
+        session,
+        workspace_id,
+        constraint_check=False,
+    )
+
+    # noinspection PyTypeChecker
+    # None не вернется, т.к. эта проверка произошла в get_workspace_by_id
+    workspace_orm_model: Workspace = await session.get(Workspace, workspace_id)
+
+    # ---
+    # Провека ограничения на удаление рабочего пространства только его
+    # администратором
+    # ---
+
+    # Во избежание циклического импорта
+    from .workspace_members import check_if_user_is_workspace_admin
+
+    await check_if_user_is_workspace_admin(session, user_id, workspace_id)
+
+    # ---
+
+    # Удаление из БД
+    await session.delete(workspace_orm_model)
+    await session.commit()
+    return workspace_pydantic_model
