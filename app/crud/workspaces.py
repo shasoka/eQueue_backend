@@ -9,15 +9,20 @@ from core.exceptions import (
     NoEntityFoundException,
     UniqueConstraintViolationException,
 )
-from core.models import User, Workspace
+from core.models import Group, User, Workspace
 
-__all__ = ()
 
 from core.schemas.workspace_members import WorkspaceMemberCreate
 
-from core.schemas.workspaces import WorkspaceCreate
+from core.schemas.workspaces import (
+    WorkspaceCreate,
+    WorkspaceRead,
+)
+from utils import extract_semester_from_group_name
 
-from .groups import check_foreign_key_group_id
+from .groups import check_foreign_key_group_id, get_group_by_id
+
+__all__ = ("create_workspace",)
 
 
 # --- Проверка ограничений внешнего ключа ---
@@ -73,7 +78,7 @@ async def create_workspace(
     session: AsyncSession,
     workspace_in: WorkspaceCreate,
     current_user: User,
-) -> Workspace | None:
+) -> WorkspaceRead | None:
     # Распаковка pydantic-модели в SQLAlchemy-модель
     workspace: Workspace = Workspace(**workspace_in.model_dump())
 
@@ -98,6 +103,14 @@ async def create_workspace(
 
     # ---
 
+    # Вычисление текущего семестра по названию группы
+    group: Group = await get_group_by_id(
+        session,
+        workspace.group_id,
+        constraint_check=False,
+    )
+    semester = extract_semester_from_group_name(group.name)
+
     # Запись рабочего пространства в БД
     session.add(workspace)
     await session.commit()
@@ -118,7 +131,15 @@ async def create_workspace(
         ),
     )
 
-    return workspace
+    return WorkspaceRead(
+        id=workspace.id,
+        group_id=workspace.group_id,
+        name=workspace.name,
+        semester=semester,
+        members_count=1,
+        created_at=workspace.created_at,
+        updated_at=workspace.updated_at,
+    )
 
 
 # --- Read ---
@@ -128,11 +149,37 @@ async def get_workspace_by_id(
     session: AsyncSession,
     workspace_id: int,
     constraint_check: bool = True,
-) -> Workspace | None:
+) -> WorkspaceRead | None:
     if workspace := await session.get(Workspace, workspace_id):
-        return workspace
+        # Во избежание циклического импорта
+        from .workspace_members import (
+            get_workspace_members_count_by_workspace_id,
+        )
+
+        # Вычисление текущего семестра по названию группы
+        # noinspection PyTypeChecker
+        group: Group = await get_group_by_id(
+            session,
+            workspace.group_id,
+            constraint_check=False,
+        )
+        semester = extract_semester_from_group_name(group.name)
+
+        # noinspection PyTypeChecker
+        return WorkspaceRead(
+            id=workspace.id,
+            name=workspace.name,
+            group_id=workspace.group_id,
+            semester=semester,
+            created_at=workspace.created_at,
+            updated_at=workspace.updated_at,
+            members_count=await get_workspace_members_count_by_workspace_id(
+                session=session,
+                workspace_id=workspace_id,
+            ),
+        )
     elif constraint_check:
-        # Возвращаем None для того, чтобы функция check_foreign_key_group_id
+        # Возвращаем None для того, чтобы функция check_foreign_key_workspace_id
         # выбросила свое исключение
         return None
     else:

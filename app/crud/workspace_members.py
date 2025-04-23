@@ -1,11 +1,19 @@
-from sqlalchemy import Select, select
+from sqlalchemy import func, Select, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from core.exceptions import UniqueConstraintViolationException
+from core.exceptions import (
+    NoEntityFoundException,
+    UniqueConstraintViolationException,
+)
 from core.models import WorkspaceMember
 from core.schemas.workspace_members import WorkspaceMemberCreate
 from crud.users import check_foreign_key_user_id
 from crud.workspaces import check_foreign_key_workspace_id
+
+__all__ = (
+    "get_workspace_members_count_by_workspace_id",
+    "create_workspace_member",
+)
 
 
 # --- Проверка ограничений ---
@@ -16,11 +24,11 @@ async def check_complex_unique_user_id_workspace_id(
     user_id: int,
     workspace_id: int,
 ) -> None:
-    stmt: Select = select(WorkspaceMember).where(
-        WorkspaceMember.user_id == user_id,
-        WorkspaceMember.workspace_id == workspace_id,
-    )
-    if (await session.scalars(stmt)).one_or_none():
+    if await get_workspace_member_by_user_id_and_workspace_id(
+        session,
+        user_id,
+        workspace_id,
+    ):
         raise UniqueConstraintViolationException(
             f"Нарушено комплексное ограничение уникальности в таблице "
             f"workspace_members: пара значений user_id={user_id} и "
@@ -68,3 +76,42 @@ async def create_workspace_member(
     await session.commit()
     await session.refresh(workspace_member)
     return workspace_member
+
+
+# --- Read ---
+
+
+async def get_workspace_member_by_user_id_and_workspace_id(
+    session: AsyncSession,
+    user_id: int,
+    workspace_id: int,
+    constraint_check: bool = True,
+) -> WorkspaceMember | None:
+    if workspace_member := (
+        await session.scalars(
+            select(WorkspaceMember).where(
+                WorkspaceMember.user_id == user_id,
+                WorkspaceMember.workspace_id == workspace_id,
+            )
+        )
+    ).one_or_none():
+        return workspace_member
+    elif constraint_check:
+        return None
+    else:
+        raise NoEntityFoundException(
+            f"Член рабочего пространства с user_id={user_id} и "
+            f"workspace_id={workspace_id} не найден"
+        )
+
+
+async def get_workspace_members_count_by_workspace_id(
+    session: AsyncSession,
+    workspace_id: int,
+) -> int:
+    stmt: Select = (
+        select(func.count())
+        .select_from(WorkspaceMember)
+        .where(WorkspaceMember.workspace_id == workspace_id)
+    )
+    return (await session.execute(stmt)).scalar_one()

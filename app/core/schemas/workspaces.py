@@ -3,20 +3,21 @@ from datetime import datetime
 from pydantic import BaseModel
 
 __all__ = (
-    "WorkspaceRead",
     "WorkspaceCreate",
     "WorkspaceUpdate",
+    "WorkspaceRead",
 )
 
 
 class WorkspaceBase(BaseModel):
     group_id: int
     name: str
-    semester: int
 
 
 class WorkspaceRead(WorkspaceBase):
     id: int
+    semester: int
+    members_count: int
     created_at: datetime
     updated_at: datetime
 
@@ -28,4 +29,3 @@ class WorkspaceCreate(WorkspaceBase):
 class WorkspaceUpdate(BaseModel):
     group_id: int | None = None
     name: str | None = None
-    semester: int | None = None

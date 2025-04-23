@@ -158,11 +158,6 @@ class Workspace(Base):
         nullable=False,
     )
 
-    # Семестр
-    semester: Mapped[int] = mapped_column(
-        nullable=False,
-    )
-
     # Дата и время срздания рабочего пространства
     created_at: Mapped[datetime] = mapped_column(
         TIMESTAMP(),

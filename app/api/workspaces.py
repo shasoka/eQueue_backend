@@ -1,20 +1,21 @@
+from typing import Annotated
+
 from fastapi import (
     APIRouter,
     Depends,
-    File,
-    status,
-    UploadFile,
 )
-from fastapi.responses import ORJSONResponse
-from fastapi.security import OAuth2PasswordRequestForm
 from sqlalchemy.ext.asyncio import AsyncSession
-from typing import Annotated
 
 from core.config import settings
 from core.models import db_helper, User, Workspace
-
-from core.schemas.workspaces import WorkspaceCreate, WorkspaceRead
-from crud.workspaces import create_workspace as _create_workspace
+from core.schemas.workspaces import (
+    WorkspaceCreate,
+    WorkspaceRead,
+)
+from crud.workspaces import (
+    create_workspace as _create_workspace,
+    get_workspace_by_id as _get_workspace_by_id,
+)
 
 __all__ = ("router",)
 
@@ -28,9 +29,22 @@ async def create_workspace(
     workspace_in: WorkspaceCreate,
     current_user: Annotated[User, Depends(get_current_user)],
     session: Annotated[AsyncSession, Depends(db_helper.session_getter)],
-) -> Workspace:
+) -> WorkspaceRead:
     return await _create_workspace(
         session=session,
         workspace_in=workspace_in,
         current_user=current_user,
+    )
+
+
+@router.get("/{id}", response_model=WorkspaceRead)
+async def get_workspace_by_id(
+    id: int,
+    _: Annotated[User, Depends(get_current_user)],
+    session: Annotated[AsyncSession, Depends(db_helper.session_getter)],
+) -> WorkspaceRead:
+    return await _get_workspace_by_id(
+        session=session,
+        workspace_id=id,
+        constraint_check=False,
     )
