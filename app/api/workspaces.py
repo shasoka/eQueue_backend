@@ -11,10 +11,12 @@ from core.models import db_helper, User, Workspace
 from core.schemas.workspaces import (
     WorkspaceCreate,
     WorkspaceRead,
+    WorkspaceUpdate,
 )
 from crud.workspaces import (
     create_workspace as _create_workspace,
     get_workspace_by_id as _get_workspace_by_id,
+    update_workspace,
 )
 
 __all__ = ("router",)
@@ -48,3 +50,13 @@ async def get_workspace_by_id(
         workspace_id=id,
         constraint_check=False,
     )
+
+
+@router.patch("/{id}", response_model=WorkspaceRead)
+async def partial_update_workspace(
+    id: int,
+    workspace_upd: WorkspaceUpdate,
+    _: Annotated[User, Depends(get_current_user)],
+    session: Annotated[AsyncSession, Depends(db_helper.session_getter)],
+) -> WorkspaceRead:
+    return await update_workspace(session, workspace_upd, id)

@@ -17,12 +17,17 @@ from core.schemas.workspace_members import WorkspaceMemberCreate
 from core.schemas.workspaces import (
     WorkspaceCreate,
     WorkspaceRead,
+    WorkspaceUpdate,
 )
 from utils import extract_semester_from_group_name
 
 from .groups import check_foreign_key_group_id, get_group_by_id
 
-__all__ = ("create_workspace",)
+__all__ = (
+    "create_workspace",
+    "get_workspace_by_id",
+    "update_workspace",
+)
 
 
 # --- Проверка ограничений внешнего ключа ---
@@ -188,3 +193,51 @@ async def get_workspace_by_id(
         raise NoEntityFoundException(
             f"Рабочее пространство с id={workspace_id} не найдено"
         )
+
+
+# --- Update ---
+
+
+async def update_workspace(
+    session: AsyncSession,
+    workspace_upd: WorkspaceUpdate,
+    workspace_id: int,
+) -> WorkspaceRead | None:
+    # Исключение не заданных явно атрибутов
+    workspace_upd: dict = workspace_upd.model_dump(exclude_unset=True)
+
+    workspace_pydantic_model: WorkspaceRead = await get_workspace_by_id(
+        session,
+        workspace_id,
+        constraint_check=False,
+    )
+
+    # noinspection PyTypeChecker
+    # None не вернется, т.к. эта проверка произошла в get_workspace_by_id
+    workspace_orm_model: Workspace = await session.get(Workspace, workspace_id)
+
+    # --- Ограничения уникальности ---
+
+    # Проверка пришедшего имени на уникальность в рамках данной группы
+    if (
+        "name" in workspace_upd
+        and workspace_upd["name"] is not None
+        # Если пришло то же имя, что уже записано, то пропускаем проверку
+        and workspace_upd["name"] != workspace_orm_model.name
+    ):
+        await check_complex_unique_group_id_name(
+            session,
+            workspace_pydantic_model.group_id,
+            workspace_upd["name"],
+        )
+
+    # ---
+
+    for key, value in workspace_upd.items():
+        # Обновление атрибутов в orm-модели
+        setattr(workspace_orm_model, key, value)
+        # Обновление атрибутов в pydantic-модели
+        setattr(workspace_pydantic_model, key, value)
+    await session.commit()
+    await session.refresh(workspace_orm_model)
+    return workspace_pydantic_model

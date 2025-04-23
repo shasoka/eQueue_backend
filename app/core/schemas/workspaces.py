@@ -27,5 +27,4 @@ class WorkspaceCreate(WorkspaceBase):
 
 
 class WorkspaceUpdate(BaseModel):
-    group_id: int | None = None
     name: str | None = None
