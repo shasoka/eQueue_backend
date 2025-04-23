@@ -17,4 +17,6 @@ class WorkspaceMemberCreate(WorkspaceMemberBase):
 
 class WorkspaceMemberRead(WorkspaceMemberBase):
     id: int
+    user_id: int
+    workspace_id: int
     joined_at: datetime

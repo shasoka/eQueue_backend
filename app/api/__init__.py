@@ -4,6 +4,7 @@ from core.config import settings
 from .users import router as users_router
 from .groups import router as groups_router
 from .workspaces import router as workspaces_router
+from .workspace_members import router as workspace_members_router
 
 __all__ = ("router",)
 
@@ -26,4 +27,10 @@ router.include_router(
     router=workspaces_router,
     prefix=settings.api.workspaces.prefix,
     tags=settings.api.workspaces.tags,
+)
+
+router.include_router(
+    router=workspace_members_router,
+    prefix=settings.api.workspace_members.prefix,
+    tags=settings.api.workspace_members.tags,
 )

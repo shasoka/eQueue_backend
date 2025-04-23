@@ -31,6 +31,11 @@ class ApiWorkspaces(BaseModel):
     tags: list[str] = ["Workspaces"]
 
 
+class ApiWorkspaceMembers(BaseModel):
+    prefix: str = "/workspace_members"
+    tags: list[str] = ["Workspace Members"]
+
+
 class ApiBase(BaseModel):
     prefix: str = "/api"
     tags: list[str] = ["eQueue Api"]
@@ -44,6 +49,7 @@ class ApiBase(BaseModel):
     users: ApiUsers = ApiUsers()
     groups: ApiGroups = ApiGroups()
     workspaces: ApiWorkspaces = ApiWorkspaces()
+    workspace_members: ApiWorkspaceMembers = ApiWorkspaceMembers()
 
 
 class MoodleAPI(BaseModel):

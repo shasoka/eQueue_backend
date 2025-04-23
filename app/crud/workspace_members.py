@@ -15,6 +15,7 @@ __all__ = (
     "get_workspace_members_count_by_workspace_id",
     "create_workspace_member",
     "check_if_user_is_workspace_admin",
+    "get_workspace_member_by_id",
 )
 
 # --- Проверка ограничений ---
@@ -125,6 +126,21 @@ async def get_workspace_member_by_user_id_and_workspace_id(
             f"Член рабочего пространства с user_id={user_id} и "
             f"workspace_id={workspace_id} не найден"
         )
+
+
+async def get_workspace_member_by_id(
+    session: AsyncSession,
+    workspace_member_id: int,
+) -> WorkspaceMember | None:
+    if workspace_member := await session.get(
+        WorkspaceMember,
+        workspace_member_id,
+    ):
+        return workspace_member
+    raise NoEntityFoundException(
+        f"Член рабочего пространства с "
+        f"workspace_member_id={workspace_member_id} не найден."
+    )
 
 
 async def get_workspace_members_count_by_workspace_id(

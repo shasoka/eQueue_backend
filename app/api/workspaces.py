@@ -6,8 +6,7 @@ from fastapi import (
 )
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from core.config import settings
-from core.models import db_helper, User, Workspace
+from core.models import db_helper, User
 from core.schemas.workspaces import (
     WorkspaceCreate,
     WorkspaceRead,
@@ -15,14 +14,16 @@ from core.schemas.workspaces import (
 )
 from crud.workspaces import (
     create_workspace as _create_workspace,
+    delete_workspace as _delete_workspace,
     get_workspace_by_id as _get_workspace_by_id,
     update_workspace,
-    delete_workspace as _delete_workspace,
 )
+
+from moodle.auth import get_current_user
+
 
 __all__ = ("router",)
 
-from moodle.auth import get_current_user
 
 router = APIRouter()
 
