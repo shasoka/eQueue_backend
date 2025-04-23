@@ -33,7 +33,7 @@ class User(Base):
 
     # ID группы, к которой прикреплен пользователь
     group_id: Mapped[int] = mapped_column(
-        ForeignKey("groups.id"),
+        ForeignKey("groups.id", ondelete="SET NULL"),
         nullable=True,
     )
 
@@ -146,7 +146,7 @@ class Workspace(Base):
 
     # ID группы
     group_id: Mapped[int] = mapped_column(
-        ForeignKey("groups.id"),
+        ForeignKey("groups.id", ondelete="CASCADE"),
         nullable=False,
     )
 
@@ -189,6 +189,7 @@ class Workspace(Base):
     members: Mapped[list["WorkspaceMember"]] = relationship(
         "WorkspaceMember",
         back_populates="workspace",
+        cascade="all, delete-orphan",
     )
 
     # Many-to-one
@@ -196,6 +197,7 @@ class Workspace(Base):
     subjects: Mapped[list["Subject"]] = relationship(
         "Subject",
         back_populates="workspace",
+        cascade="all, delete-orphan",
     )
 
     # --- Ограничения уникальности ---
@@ -215,13 +217,13 @@ class WorkspaceMember(Base):
 
     # ID пользователя
     user_id: Mapped[int] = mapped_column(
-        ForeignKey("users.id"),
+        ForeignKey("users.id", ondelete="CASCADE"),
         nullable=False,
     )
 
     # ID рабочего пространства
     workspace_id: Mapped[int] = mapped_column(
-        ForeignKey("workspaces.id"),
+        ForeignKey("workspaces.id", ondelete="CASCADE"),
         nullable=False,
     )
 
@@ -284,7 +286,7 @@ class Subject(Base):
 
     # ID рабочего пространства
     workspace_id: Mapped[int] = mapped_column(
-        ForeignKey("workspaces.id"),
+        ForeignKey("workspaces.id", ondelete="CASCADE"),
         nullable=False,
     )
 
@@ -337,6 +339,7 @@ class Subject(Base):
     tasks: Mapped[list["Task"]] = relationship(
         "Task",
         back_populates="subject",
+        cascade="all, delete-orphan",
     )
 
     # One-to-one
@@ -345,6 +348,7 @@ class Subject(Base):
         "Queue",
         back_populates="subject",
         uselist=False,  # One-to-one
+        cascade="all, delete-orphan",
     )
 
     # --- Ограничения уникальности ---
@@ -370,7 +374,7 @@ class Queue(Base):
 
     # ID предмета
     subject_id: Mapped[int] = mapped_column(
-        ForeignKey("subjects.id"),
+        ForeignKey("subjects.id", ondelete="CASCADE"),
         nullable=False,
         unique=True,  # uq_queue_sid
     )
@@ -398,6 +402,7 @@ class Queue(Base):
     members: Mapped[list["QueueMember"]] = relationship(
         "QueueMember",
         back_populates="queue",
+        cascade="all, delete-orphan",
     )
 
 
@@ -407,13 +412,13 @@ class QueueMember(Base):
 
     # ID пользователя
     user_id: Mapped[int] = mapped_column(
-        ForeignKey("users.id"),
+        ForeignKey("users.id", ondelete="CASCADE"),
         nullable=False,
     )
 
     # ID очереди
     queue_id: Mapped[int] = mapped_column(
-        ForeignKey("queues.id"),
+        ForeignKey("queues.id", ondelete="CASCADE"),
         nullable=False,
     )
 
@@ -472,7 +477,7 @@ class Task(Base):
 
     # ID предмета
     subject_id: Mapped[int] = mapped_column(
-        ForeignKey("subjects.id"),
+        ForeignKey("subjects.id", ondelete="CASCADE"),
         nullable=False,
     )
 
@@ -502,6 +507,7 @@ class Task(Base):
     submissions: Mapped[list["Submission"]] = relationship(
         "Submission",
         back_populates="task",
+        cascade="all, delete-orphan",
     )
 
     # --- Ограничения уникальности ---
@@ -521,13 +527,13 @@ class Submission(Base):
 
     # ID задания
     task_id: Mapped[int] = mapped_column(
-        ForeignKey("tasks.id"),
+        ForeignKey("tasks.id", ondelete="CASCADE"),
         nullable=False,
     )
 
     # ID пользователя
     user_id: Mapped[int] = mapped_column(
-        ForeignKey("users.id"),
+        ForeignKey("users.id", ondelete="CASCADE"),
         nullable=False,
     )
 
