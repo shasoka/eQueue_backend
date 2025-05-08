@@ -7,6 +7,7 @@ from .moodle_exceptions import AccessTokenException
 from .business_logic_exceptions import (
     GroupIDMismatchException,
     UserIsNotWorkspaceAdminException,
+    AdminSuicideException,
 )
 from .register_exceptions_handlers import register_exceptions_handlers
 
@@ -18,4 +19,5 @@ __all__ = (
     "NoEntityFoundException",
     "GroupIDMismatchException",
     "UserIsNotWorkspaceAdminException",
+    "AdminSuicideException",
 )

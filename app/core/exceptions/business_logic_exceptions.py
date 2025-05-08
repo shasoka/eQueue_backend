@@ -4,3 +4,7 @@ class GroupIDMismatchException(Exception):
 
 class UserIsNotWorkspaceAdminException(Exception):
     pass
+
+
+class AdminSuicideException(Exception):
+    pass

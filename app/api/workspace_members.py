@@ -20,6 +20,7 @@ from crud.workspace_members import (
     get_workspace_members_by_workspace_id_and_status as _get_workspace_members_by_workspace_id_and_status,
     create_workspace_member as _create_workspace_member,
     update_workspace_member,
+    delete_workspace_member as _delete_workspace_member,
 )
 
 router = APIRouter()
@@ -81,6 +82,19 @@ async def partial_update_workspace_member(
     return await update_workspace_member(
         session=session,
         workspace_member_upd=workspace_member_upd,
+        workspace_member_id=id,
+        current_user_id=current_user.id,
+    )
+
+
+@router.delete("/id", response_model=WorkspaceMemberRead)
+async def delete_workspace_member(
+    id: int,
+    current_user: Annotated[User, Depends(get_current_user)],
+    session: Annotated[AsyncSession, Depends(db_helper.session_getter)],
+) -> WorkspaceMember:
+    return await _delete_workspace_member(
+        session=session,
         workspace_member_id=id,
         current_user_id=current_user.id,
     )

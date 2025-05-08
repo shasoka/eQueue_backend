@@ -3,6 +3,7 @@ from fastapi.responses import ORJSONResponse
 
 from core.exceptions import (
     AccessTokenException,
+    AdminSuicideException,
     NoEntityFoundException,
     UniqueConstraintViolationException,
     ForeignKeyViolationException,
@@ -81,6 +82,20 @@ def register_exceptions_handlers(app: FastAPI) -> None:
             status_code=status.HTTP_403_FORBIDDEN,
             content={
                 "message": "Доступ запрещен",
+                "error": str(exc),
+            },
+        )
+
+    # noinspection PyUnusedLocal
+    @app.exception_handler(AdminSuicideException)
+    async def handle_access_token_exception(
+        request: Request,
+        exc: AdminSuicideException,
+    ) -> ORJSONResponse:
+        return ORJSONResponse(
+            status_code=status.HTTP_409_CONFLICT,
+            content={
+                "message": "Нарушено ограничение бизнес-логики",
                 "error": str(exc),
             },
         )

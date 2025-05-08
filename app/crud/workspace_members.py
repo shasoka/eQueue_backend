@@ -1,3 +1,5 @@
+from datetime import datetime
+
 from typing import Literal
 
 from sqlalchemy import func, Select, select
@@ -5,6 +7,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
 from core.exceptions import (
+    AdminSuicideException,
     NoEntityFoundException,
     UniqueConstraintViolationException,
     UserIsNotWorkspaceAdminException,
@@ -248,6 +251,44 @@ async def update_workspace_member(
 
     for key, value in workspace_member_upd.items():
         setattr(workspace_member, key, value)
+    # Обновление времени присоединения, если статус сменен на approved
+    if workspace_member.status == "approved":
+        workspace_member.joined_at = datetime.utcnow()
     await session.commit()
     await session.refresh(workspace_member)
+    return workspace_member
+
+
+# --- Delete ---
+
+
+async def delete_workspace_member(
+    session: AsyncSession,
+    workspace_member_id: int,
+    current_user_id: int,
+) -> WorkspaceMember:
+    workspace_member: WorkspaceMember = await get_workspace_member_by_id(
+        session=session,
+        workspace_member_id=workspace_member_id,
+    )
+
+    # Проверка является ли пользователь, удаляющий члена рабочего
+    # пространства, его администратором
+    await check_if_user_is_workspace_admin(
+        session=session,
+        user_id=current_user_id,
+        workspace_id=workspace_member.workspace_id,
+    )
+
+    # Проверка удаления администратора
+    if workspace_member.is_admin:
+        raise AdminSuicideException(
+            "Член рабочего пространства с id="
+            f"{workspace_member.id} является администратором и не может быть "
+            f"удален"
+        )
+
+    await session.delete(workspace_member)
+    await session.commit()
+
     return workspace_member
