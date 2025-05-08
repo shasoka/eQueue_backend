@@ -176,6 +176,16 @@ async def get_workspace_members_by_workspace_id_and_status(
     status: Literal["approved", "pending", "rejected", "*"] = "approved",
 ) -> list[WorkspaceMember]:
 
+    # Проверка существования внешнего ключа workspace_id
+
+    # Во избежание циклического импорта
+    from .workspaces import check_foreign_key_workspace_id
+
+    await check_foreign_key_workspace_id(
+        session=session,
+        workspace_id=workspace_id,
+    )
+
     # Проверка прав администратора, для получения членов рабочего пространства
     # с учетом статуса
     if status in ("pending", "rejected"):

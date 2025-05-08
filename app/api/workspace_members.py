@@ -43,17 +43,6 @@ async def create_workspace_member(
     )
 
 
-@router.get("/{id}", response_model=WorkspaceMemberRead)
-async def get_workspace_member_by_id(
-    id: int,
-    _: Annotated[User, Depends(get_current_user)],
-    session: Annotated[AsyncSession, Depends(db_helper.session_getter)],
-) -> WorkspaceMember:
-    return await _get_workspace_member_by_id(
-        session=session, workspace_member_id=id
-    )
-
-
 @router.get(
     settings.api.workspace_members.all + "/{id}/{status}",
     response_model=list[WorkspaceMemberRead],
@@ -69,6 +58,17 @@ async def get_workspace_members_by_workspace_id_and_status(
         workspace_id=id,
         user_id=current_user.id,
         status=status,
+    )
+
+
+@router.get("/{id}", response_model=WorkspaceMemberRead)
+async def get_workspace_member_by_id(
+    id: int,
+    _: Annotated[User, Depends(get_current_user)],
+    session: Annotated[AsyncSession, Depends(db_helper.session_getter)],
+) -> WorkspaceMember:
+    return await _get_workspace_member_by_id(
+        session=session, workspace_member_id=id
     )
 
 
