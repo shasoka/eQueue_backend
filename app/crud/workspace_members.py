@@ -2,6 +2,7 @@ from typing import Literal
 
 from sqlalchemy import func, Select, select
 from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.orm import selectinload
 
 from core.exceptions import (
     NoEntityFoundException,
@@ -181,7 +182,9 @@ async def get_workspace_members_by_workspace_id_and_status(
     return list(
         (
             await session.execute(
-                select(WorkspaceMember).where(
+                select(WorkspaceMember)
+                .options(selectinload(WorkspaceMember.user))
+                .where(
                     WorkspaceMember.workspace_id == workspace_id,
                     WorkspaceMember.status == status,
                 )

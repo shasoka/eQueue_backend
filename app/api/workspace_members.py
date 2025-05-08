@@ -8,15 +8,36 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from core.config import settings
 from core.models import db_helper, User, WorkspaceMember
-from core.schemas.workspace_members import WorkspaceMemberRead
+from core.schemas.workspace_members import (
+    WorkspaceMemberCreate,
+    WorkspaceMemberRead,
+)
 from moodle.auth import get_current_user
 
 from crud.workspace_members import (
     get_workspace_member_by_id as _get_workspace_member_by_id,
     get_workspace_members_by_workspace_id_and_status as _get_workspace_members_by_workspace_id_and_status,
+    create_workspace_member as _create_workspace_member,
 )
 
 router = APIRouter()
+
+
+@router.post("/{wid}", response_model=WorkspaceMemberRead)
+async def create_workspace_member(
+    wid: int,
+    current_user: Annotated[User, Depends(get_current_user)],
+    session: Annotated[AsyncSession, Depends(db_helper.session_getter)],
+) -> WorkspaceMember:
+    return await _create_workspace_member(
+        session=session,
+        workspace_member_in=WorkspaceMemberCreate(
+            is_admin=False,
+            status="pending",
+            user_id=current_user.id,
+            workspace_id=wid,
+        ),
+    )
 
 
 @router.get("/{id}", response_model=WorkspaceMemberRead)
