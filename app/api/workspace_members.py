@@ -11,6 +11,7 @@ from core.models import db_helper, User, WorkspaceMember
 from core.schemas.workspace_members import (
     WorkspaceMemberCreate,
     WorkspaceMemberRead,
+    WorkspaceMemberUpdate,
 )
 from moodle.auth import get_current_user
 
@@ -18,6 +19,7 @@ from crud.workspace_members import (
     get_workspace_member_by_id as _get_workspace_member_by_id,
     get_workspace_members_by_workspace_id_and_status as _get_workspace_members_by_workspace_id_and_status,
     create_workspace_member as _create_workspace_member,
+    update_workspace_member,
 )
 
 router = APIRouter()
@@ -57,7 +59,7 @@ async def get_workspace_member_by_id(
 )
 async def get_workspace_members_by_workspace_id_and_status(
     id: int,
-    status: Literal["approved", "pending", "rejected"],
+    status: Literal["approved", "pending", "rejected", "*"],
     current_user: Annotated[User, Depends(get_current_user)],
     session: Annotated[AsyncSession, Depends(db_helper.session_getter)],
 ) -> list[WorkspaceMember]:
@@ -66,4 +68,19 @@ async def get_workspace_members_by_workspace_id_and_status(
         workspace_id=id,
         user_id=current_user.id,
         status=status,
+    )
+
+
+@router.patch("/{id}", response_model=WorkspaceMemberRead)
+async def partial_update_workspace_member(
+    id: int,
+    current_user: Annotated[User, Depends(get_current_user)],
+    session: Annotated[AsyncSession, Depends(db_helper.session_getter)],
+    workspace_member_upd: WorkspaceMemberUpdate,
+) -> WorkspaceMember:
+    return await update_workspace_member(
+        session=session,
+        workspace_member_upd=workspace_member_upd,
+        workspace_member_id=id,
+        current_user_id=current_user.id,
     )

@@ -10,7 +10,10 @@ from core.exceptions import (
     UserIsNotWorkspaceAdminException,
 )
 from core.models import WorkspaceMember
-from core.schemas.workspace_members import WorkspaceMemberCreate
+from core.schemas.workspace_members import (
+    WorkspaceMemberCreate,
+    WorkspaceMemberUpdate,
+)
 from crud.users import check_foreign_key_user_id
 from crud.workspaces import check_foreign_key_workspace_id
 
@@ -167,7 +170,7 @@ async def get_workspace_members_by_workspace_id_and_status(
     session: AsyncSession,
     workspace_id: int,
     user_id: int,
-    status: Literal["approved", "pending", "rejected"] = "approved",
+    status: Literal["approved", "pending", "rejected", "*"] = "approved",
 ) -> list[WorkspaceMember]:
 
     # Проверка прав администратора, для получения членов рабочего пространства
@@ -186,7 +189,11 @@ async def get_workspace_members_by_workspace_id_and_status(
                 .options(selectinload(WorkspaceMember.user))
                 .where(
                     WorkspaceMember.workspace_id == workspace_id,
-                    WorkspaceMember.status == status,
+                    (
+                        WorkspaceMember.status == status
+                        if status != "*"
+                        else True
+                    ),
                 )
             )
         )
@@ -205,3 +212,42 @@ async def get_workspace_members_count_by_workspace_id(
         .where(WorkspaceMember.workspace_id == workspace_id)
     )
     return (await session.execute(stmt)).scalar_one()
+
+
+# --- Update ---
+
+
+async def update_workspace_member(
+    session: AsyncSession,
+    workspace_member_upd: WorkspaceMemberUpdate,
+    workspace_member_id: int,
+    current_user_id: int,
+) -> WorkspaceMember:
+    # --- Ограничения уникальности ---
+
+    workspace_member: WorkspaceMember = await get_workspace_member_by_id(
+        session=session,
+        workspace_member_id=workspace_member_id,
+    )
+
+    #  Проверка является ли пользователь, изменяющий члена рабочего
+    #  пространства, его администратором
+
+    await check_if_user_is_workspace_admin(
+        session=session,
+        user_id=current_user_id,
+        workspace_id=workspace_member.workspace_id,
+    )
+
+    # ---
+
+    # Исключение не заданных явно атрибутов
+    workspace_member_upd: dict = workspace_member_upd.model_dump(
+        exclude_unset=True
+    )
+
+    for key, value in workspace_member_upd.items():
+        setattr(workspace_member, key, value)
+    await session.commit()
+    await session.refresh(workspace_member)
+    return workspace_member

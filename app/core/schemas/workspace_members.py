@@ -1,13 +1,18 @@
 from datetime import datetime
+from typing import Literal
 
 from pydantic import BaseModel
 
-__all__ = ()
+__all__ = (
+    "WorkspaceMemberCreate",
+    "WorkspaceMemberRead",
+    "WorkspaceMemberUpdate",
+)
 
 
 class WorkspaceMemberBase(BaseModel):
     is_admin: bool
-    status: str
+    status: Literal["approved", "pending", "rejected"]
 
 
 class WorkspaceMemberCreate(WorkspaceMemberBase):
@@ -20,3 +25,7 @@ class WorkspaceMemberRead(WorkspaceMemberBase):
     user_id: int
     workspace_id: int
     joined_at: datetime
+
+
+class WorkspaceMemberUpdate(BaseModel):
+    status: Literal["approved", "pending", "rejected"] | None = None

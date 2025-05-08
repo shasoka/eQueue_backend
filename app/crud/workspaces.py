@@ -182,6 +182,7 @@ async def get_workspace_by_id(
                 workspace_id=workspace_id,
             ),
         )
+
     elif constraint_check:
         # Возвращаем None для того, чтобы функция check_foreign_key_workspace_id
         # выбросила свое исключение
@@ -228,6 +229,8 @@ async def update_workspace(
     workspace_upd: WorkspaceUpdate,
     workspace_id: int,
 ) -> WorkspaceRead | None:
+    # Работаем с orm- и pydantic-моделями из-за динамического поля semester
+
     # Исключение не заданных явно атрибутов
     workspace_upd: dict = workspace_upd.model_dump(exclude_unset=True)
 
@@ -276,7 +279,6 @@ async def delete_workspace(
     user_id: int,
     workspace_id: int,
 ) -> WorkspaceRead | None:
-
     # Получение рабочего пространства включает проверку на его существование
     workspace_pydantic_model: WorkspaceRead = await get_workspace_by_id(
         session,
