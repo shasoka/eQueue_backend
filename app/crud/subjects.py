@@ -5,8 +5,12 @@ from core.exceptions import (
     NoEntityFoundException,
     UniqueConstraintViolationException,
 )
-from core.models.entities import Subject
-from crud.workspace_members import check_if_user_is_workspace_member
+from core.models.entities import Subject, User
+from core.schemas.subjects import SubjectCreate
+from crud.workspace_members import (
+    check_if_user_is_workspace_admin,
+    check_if_user_is_workspace_member,
+)
 from crud.workspaces import check_foreign_key_workspace_id
 
 
@@ -48,6 +52,71 @@ async def check_complex_unique_workspace_id_name(
             f"subjects: пара значений workspace_id={workspace_id} и "
             f"name={name} уже существует в таблице subjects."
         )
+
+
+# --- Create ---
+
+
+async def create_subjects(
+    workspace_id: int,
+    subjects_in: list[SubjectCreate],
+    user_id: int,
+    session: AsyncSession,
+) -> list[Subject]:
+
+    added_subjects: list[Subject] = []
+
+    for subject in subjects_in:
+        # noinspection PyUnresolvedReferences
+        # Распаковка pydantic-модели в SQLAlchemy-модель
+        subject: Subject = Subject(**subject.model_dump())
+
+        # --- Ограничения уникальности ---
+
+        # Проверка существования рабочего пространства
+        await check_foreign_key_workspace_id(
+            session=session,
+            workspace_id=workspace_id,
+        )
+
+        # Проверка является ли пользователь администратором рабочего
+        # пространства
+        await check_if_user_is_workspace_admin(
+            session=session,
+            user_id=user_id,
+            workspace_id=workspace_id,
+        )
+
+        try:
+            # Проверка составного ограничения уникальности workspace_id и ecourses_id
+            await check_complex_unique_workspace_id_ecourses_id(
+                session=session,
+                workspace_id=workspace_id,
+                ecourses_id=subject.ecourses_id,
+            )
+
+            # Проверка составного ограничения уникальности workspace_id и name
+            await check_complex_unique_workspace_id_name(
+                session=session,
+                workspace_id=workspace_id,
+                name=subject.name,
+            )
+        except:
+            continue
+
+        # ---
+
+        # workspace_id устанавливается в соответствии с переданным параметром
+        subject.workspace_id = workspace_id
+
+        # Запись предмета в БД
+        session.add(subject)
+        await session.flush()
+
+        added_subjects.append(subject)
+
+    await session.commit()
+    return added_subjects
 
 
 # --- Read ---

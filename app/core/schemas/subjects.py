@@ -1,7 +1,10 @@
 from pydantic import BaseModel
 
 
-__all__ = ("SubjectRead", "SubjectCreate")
+__all__ = (
+    "SubjectRead",
+    "SubjectCreate",
+)
 
 
 class SubjectBase(BaseModel):
@@ -15,7 +18,12 @@ class SubjectBase(BaseModel):
 
 
 class SubjectCreate(BaseModel):
-    workspace_id: int
+    # Поле workspace_id может быть None в случае ручного создания предметов.
+    # Если предметы создаются после запроса курсов, то worksapce_id будет
+    # иметь числовое значение, равное id рабочего пространства, для которого
+    # запрашивались курсы.
+    workspace_id: int | None
+
     ecourses_id: int | None = None
     ecourses_link: str | None = None
     professor_name: str | None = None
