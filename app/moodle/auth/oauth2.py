@@ -5,7 +5,7 @@ from fastapi.security import OAuth2PasswordBearer
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from core.config import settings
-from core.exceptions import AccessTokenException
+from core.exceptions import UnclassifiedMoodleException
 from core.models import User, db_helper
 from crud.users import get_user_by_access_token
 from moodle.auth import check_access_token_persistence
@@ -27,7 +27,7 @@ class MoodleOAuth2(OAuth2PasswordBearer):
             await check_access_token_persistence(access_token)
         else:
             # Если пользователь не найден, то выбрасываем исключение
-            raise AccessTokenException(
+            raise UnclassifiedMoodleException(
                 "Ошибка при попытке авторизации в eQueue"
             )
         return user

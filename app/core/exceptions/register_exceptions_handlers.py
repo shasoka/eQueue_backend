@@ -2,7 +2,7 @@ from fastapi import FastAPI, Request, status
 from fastapi.responses import ORJSONResponse
 
 from core.exceptions import (
-    AccessTokenException,
+    UnclassifiedMoodleException,
     AdminSuicideException,
     NoEntityFoundException,
     UniqueConstraintViolationException,
@@ -58,15 +58,15 @@ def register_exceptions_handlers(app: FastAPI) -> None:
         )
 
     # noinspection PyUnusedLocal
-    @app.exception_handler(AccessTokenException)
+    @app.exception_handler(UnclassifiedMoodleException)
     async def handle_access_token_exception(
         request: Request,
-        exc: AccessTokenException,
+        exc: UnclassifiedMoodleException,
     ) -> ORJSONResponse:
         return ORJSONResponse(
-            status_code=status.HTTP_401_UNAUTHORIZED,
+            status_code=status.HTTP_403_FORBIDDEN,
             content={
-                "message": "Пользователь не авторизован",
+                "message": "Ограничение доступа со стороны еКурсов",
                 "error": str(exc),
             },
             headers={"Token-Alive": "false"},

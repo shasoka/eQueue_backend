@@ -5,7 +5,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from core.config import settings
 from core.models import db_helper, User
-from core.models.entities import Subject
+from core.models import Subject
 from core.schemas.subjects import SubjectCreate, SubjectRead, SubjectUpdate
 from crud.subjects import (
     get_subjects_by_workspace_id as _get_subjects_by_workspace_id,

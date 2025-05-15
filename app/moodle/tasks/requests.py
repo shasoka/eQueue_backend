@@ -18,12 +18,12 @@ async def _has_duplicate(
 
 async def get_tasks_from_course_structure(
     token: str,
-    ecourses_id: int,
+    subject_ecourses_id: int,
     subject_id: int,
-) -> list[TaskCreate] | None:
+) -> list[TaskCreate]:
     url = settings.moodle.course_structure_url % (
         url_encode(token),
-        url_encode(str(ecourses_id)),
+        url_encode(str(subject_ecourses_id)),
     )
 
     async with httpx.AsyncClient() as client:

@@ -1,6 +1,6 @@
 from fastapi import HTTPException
 
-from core.exceptions import AccessTokenException
+from core.exceptions import UnclassifiedMoodleException
 
 
 async def validate_ecourses_response(
@@ -30,6 +30,6 @@ async def validate_ecourses_response(
     """
 
     if error_key in response:
-        raise AccessTokenException(
+        raise UnclassifiedMoodleException(
             "Ответ от еКурсов: " + response[message_key]
         )

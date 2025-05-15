@@ -1,0 +1,66 @@
+from sqlalchemy import Select, select
+from sqlalchemy.ext.asyncio import AsyncSession
+
+from core.exceptions import UniqueConstraintViolationException
+from core.models import Subject, Task, User
+from core.schemas.tasks import TaskCreate
+from crud.subjects import check_foreign_key_subject_id, get_subject_by_id
+from crud.workspace_members import check_if_user_is_workspace_admin
+from moodle.tasks import get_tasks_from_course_structure
+
+
+# --- Проверка ограничений ---
+
+
+async def check_complex_unique_subject_id_name(
+    session: AsyncSession,
+    subject_id: int,
+    name: str,
+) -> None:
+    if await get_task_by_subject_id_and_name(session, subject_id, name):
+        raise UniqueConstraintViolationException(
+            f"Нарушено комплексное ограничение уникальности в таблице "
+            f"tasks: пара значений subject_id={subject_id} и "
+            f"name={name} уже существует в таблице tasks."
+        )
+
+
+# --- Read ---
+
+
+async def get_task_by_subject_id_and_name(
+    session: AsyncSession, subject_id: int, name: str
+) -> Task | None:
+    stmt: Select = select(Task).where(
+        Task.subject_id == subject_id,
+        Task.name == name,
+    )
+
+    return (await session.scalars(stmt)).one_or_none()
+
+
+async def get_tasks_from_ecourses(
+    session: AsyncSession,
+    target_subject_id: int,
+    current_user: User,
+) -> list[TaskCreate]:
+    # Получение предмета и проверка его существования
+    subject: Subject = await get_subject_by_id(
+        session=session,
+        subject_id=target_subject_id,
+        constraint_check=False,
+    )
+
+    # Проверка является ли пользователь, запришивающий задания,
+    # администратором рабочего пространства, в котором находится данный предмет
+    await check_if_user_is_workspace_admin(
+        session=session,
+        user_id=current_user.id,
+        workspace_id=subject.workspace_id,
+    )
+
+    return await get_tasks_from_course_structure(
+        token=current_user.access_token,
+        subject_ecourses_id=subject.ecourses_id,
+        subject_id=target_subject_id,
+    )

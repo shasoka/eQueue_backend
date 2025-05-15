@@ -1,2 +1,2 @@
-class AccessTokenException(Exception):
+class UnclassifiedMoodleException(Exception):
     pass
