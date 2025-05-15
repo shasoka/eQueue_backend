@@ -51,6 +51,7 @@ class ApiSubjects(BaseModel):
     # --- Endpoints ---
 
     from_ecourses: str = "/from_ecourses"
+    from_worksapce: str = "/from_workspace"
 
 
 class ApiBase(BaseModel):

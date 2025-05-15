@@ -126,8 +126,17 @@ async def get_subject_by_id(
     session: AsyncSession,
     subject_id: int,
     constraint_check: bool = True,
+    check_membership: bool = False,
+    user_id: int = None,
 ) -> Subject | None:
     if subject := await session.get(Subject, subject_id):
+        if check_membership:
+            # noinspection PyTypeChecker
+            await check_if_user_is_workspace_member(
+                session=session,
+                user_id=user_id,
+                workspace_id=subject.workspace_id,
+            )
         return subject
     elif constraint_check:
         return None
