@@ -6,7 +6,7 @@ from core.exceptions import (
     UniqueConstraintViolationException,
 )
 from core.models.entities import Subject, User
-from core.schemas.subjects import SubjectCreate
+from core.schemas.subjects import SubjectCreate, SubjectUpdate
 from crud.workspace_members import (
     check_if_user_is_workspace_admin,
     check_if_user_is_workspace_member,
@@ -122,6 +122,19 @@ async def create_subjects(
 # --- Read ---
 
 
+async def get_subject_by_id(
+    session: AsyncSession,
+    subject_id: int,
+    constraint_check: bool = True,
+) -> Subject | None:
+    if subject := await session.get(Subject, subject_id):
+        return subject
+    elif constraint_check:
+        return None
+    else:
+        raise NoEntityFoundException(f"Предмет с id={subject_id} не найден")
+
+
 async def get_subject_by_workspace_id_and_ecourses_id(
     session: AsyncSession,
     workspace_id: int,
@@ -199,3 +212,48 @@ async def get_subjects_by_workspace_id(
     ).all()
 
     return list(subjects)
+
+
+# --- Update ---
+
+
+async def update_subject(
+    session: AsyncSession,
+    subject_upd: SubjectUpdate,
+    subject_id: int,
+    current_user_id: int,
+) -> Subject:
+    subject: Subject = await get_subject_by_id(
+        session=session,
+        subject_id=subject_id,
+        constraint_check=False,
+    )
+
+    # --- Ограничения уникальности ---
+
+    # Проверка является ли пользователь, изменяющий предмет, администратором
+    # рабочего пространства, в котором данный предмет находится
+    await check_if_user_is_workspace_admin(
+        session=session,
+        user_id=current_user_id,
+        workspace_id=subject.workspace_id,
+    )
+
+    # Проверка пришедшего имени предмета на уникальность в рамках данного
+    # рабочего пространства
+    if subject.name != subject_upd.name:
+        await check_complex_unique_workspace_id_name(
+            session=session,
+            workspace_id=subject.workspace_id,
+            name=subject_upd.name,
+        )
+
+    # ---
+
+    subject_upd: dict = subject_upd.model_dump(exclude_unset=True)
+
+    for key, value in subject_upd.items():
+        setattr(subject, key, value)
+    await session.commit()
+    await session.refresh(subject)
+    return subject

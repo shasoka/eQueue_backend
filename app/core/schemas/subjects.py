@@ -4,6 +4,8 @@ from pydantic import BaseModel
 __all__ = (
     "SubjectRead",
     "SubjectCreate",
+    "SubjectUpdate",
+    "EcoursesSubjectDescription",
 )
 
 
@@ -44,3 +46,11 @@ class EcoursesSubjectDescription(BaseModel):
     lastaccess: int | None
     isfavourite: bool | None
     hidden: bool | None
+
+
+class SubjectUpdate(BaseModel):
+    ecourses_link: str | None = None
+    professor_name: str | None = None
+    professor_contact: str | None = None
+    professor_requirements: str | None = None
+    name: str | None = None
