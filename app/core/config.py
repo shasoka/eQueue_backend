@@ -106,6 +106,14 @@ class MoodleAPI(BaseModel):
 
     course_url: str = "https://e.sfu-kras.ru/course/view.php?id=%s"
 
+    course_structure_url: str = (
+        "https://e.sfu-kras.ru/webservice/rest/server.php"
+        "?wstoken=%s"
+        "&wsfunction=core_course_get_contents"
+        "&moodlewsrestformat=json"
+        "&courseid=%s"
+    )
+
 
 class Database(BaseModel):
     url: PostgresDsn

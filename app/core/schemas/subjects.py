@@ -26,11 +26,11 @@ class SubjectCreate(BaseModel):
     # запрашивались курсы.
     workspace_id: int | None
 
-    ecourses_id: int | None = None
-    ecourses_link: str | None = None
-    professor_name: str | None = None
-    professor_contact: str | None = None
-    professor_requirements: str | None = None
+    ecourses_id: int | None
+    ecourses_link: str | None
+    professor_name: str | None
+    professor_contact: str | None
+    professor_requirements: str | None
     name: str
 
 

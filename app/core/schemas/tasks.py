@@ -1,0 +1,22 @@
+from pydantic import BaseModel
+
+__all__ = ("TaskCreate", "TaskRead", "TaskUpdate")
+
+
+class TaskBase(BaseModel):
+    name: str
+    url: str | None
+
+
+class TaskCreate(TaskBase):
+    pass
+
+
+class TaskRead(TaskBase):
+    id: int
+    subject_id: int
+
+
+class TaskUpdate(BaseModel):
+    name: str | None = None
+    url: str | None = None
