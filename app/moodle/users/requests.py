@@ -3,7 +3,7 @@ from urllib.parse import quote_plus as url_encode
 from httpx import Response
 
 from core.config import settings
-from moodle import is_token_still_alive
+from moodle import validate_ecourses_response
 from core.middlewares.logs import logger
 
 
@@ -13,7 +13,7 @@ async def upload_new_profile_avatar(
 ) -> str:
 
     async with httpx.AsyncClient() as client:
-        url: str = settings.moodle.upload_file % url_encode(token)
+        url: str = settings.moodle.upload_file_url % url_encode(token)
         response: Response = await client.post(url, files=files)
         response_json = response.json()
 
@@ -24,7 +24,7 @@ async def upload_new_profile_avatar(
     )
 
     if not isinstance(response_json, list):
-        await is_token_still_alive(response_json)
+        await validate_ecourses_response(response_json)
 
     response_data = response_json[0]
     draftitemid = response_data.get("itemid")
@@ -50,7 +50,7 @@ async def upload_new_profile_avatar(
         response_json,
     )
 
-    await is_token_still_alive(
+    await validate_ecourses_response(
         response_json, error_key="error", message_key="error"
     )
 

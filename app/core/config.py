@@ -44,6 +44,15 @@ class ApiWorkspaceMembers(BaseModel):
     all: str = "/all"
 
 
+class ApiSubjects(BaseModel):
+    prefix: str = "/subjects"
+    tags: list[str] = ["Subjects"]
+
+    # --- Endpoints ---
+
+    from_ecourses: str = "/from_ecourses"
+
+
 class ApiBase(BaseModel):
     prefix: str = "/api"
     tags: list[str] = ["eQueue Api"]
@@ -58,6 +67,7 @@ class ApiBase(BaseModel):
     groups: ApiGroups = ApiGroups()
     workspaces: ApiWorkspaces = ApiWorkspaces()
     workspace_members: ApiWorkspaceMembers = ApiWorkspaceMembers()
+    subjects: ApiSubjects = ApiSubjects()
 
 
 class MoodleAPI(BaseModel):
@@ -77,13 +87,23 @@ class MoodleAPI(BaseModel):
         f"&moodlewsrestformat=json"
     )
 
-    upload_file: str = (
+    upload_file_url: str = (
         "https://e.sfu-kras.ru/webservice/upload.php"
         "?token=%s"
         "&filearea=draft"
     )
 
     timetable_url: str = "https://edu.sfu-kras.ru/api/timetable/get_insts"
+
+    enrolled_courses_url: str = (
+        "https://e.sfu-kras.ru/webservice/rest/server.php"
+        "?wstoken=%s"
+        "&wsfunction=core_enrol_get_users_courses"
+        "&moodlewsrestformat=json"
+        "&userid=%s"
+    )
+
+    course_url: str = "https://e.sfu-kras.ru/course/view.php?id=%s"
 
 
 class Database(BaseModel):

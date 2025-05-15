@@ -3,7 +3,7 @@ from fastapi import HTTPException
 from core.exceptions import AccessTokenException
 
 
-async def is_token_still_alive(
+async def validate_ecourses_response(
     response: dict,
     error_key: str = "exception",
     message_key: str = "message",

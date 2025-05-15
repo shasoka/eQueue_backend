@@ -5,7 +5,7 @@ from httpx import Response
 
 from core.config import settings
 from core.schemas.users import UserLogin, UserInfoFromEcourses
-from moodle import is_token_still_alive
+from moodle import validate_ecourses_response
 
 from core.middlewares.logs import logger
 
@@ -26,7 +26,7 @@ async def auth_by_moodle_credentials(credentials: UserLogin) -> str:
         response_json,
     )
 
-    await is_token_still_alive(
+    await validate_ecourses_response(
         response=response_json,
         error_key="error",
         message_key="error",
@@ -59,6 +59,6 @@ async def check_access_token_persistence(access_token: str) -> dict:
         response_json,
     )
 
-    await is_token_still_alive(response_json)
+    await validate_ecourses_response(response_json)
 
     return response_json
