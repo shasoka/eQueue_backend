@@ -68,6 +68,24 @@ async def check_if_user_is_workspace_admin(
         )
 
 
+async def check_if_user_is_workspace_member(
+    session: AsyncSession,
+    user_id: int,
+    workspace_id: int,
+) -> None:
+    if not (
+        await get_workspace_member_by_user_id_and_workspace_id(
+            session,
+            user_id,
+            workspace_id,
+        )
+    ):
+        raise UserIsNotWorkspaceAdminException(
+            f"Пользователь с user_id={user_id} не является членом рабочего "
+            f"пространства с workspace_id={workspace_id}."
+        )
+
+
 # --- Create ---
 
 

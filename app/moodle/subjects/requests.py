@@ -6,7 +6,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from core.config import settings
 from core.models import User
 from core.schemas.subjects import EcoursesSubjectDescription, SubjectCreate
-from crud.subjects import get_subjects_from_workspace
+from crud.subjects import get_subjects_by_workspace_id
 from crud.workspace_members import check_if_user_is_workspace_admin
 from crud.workspaces import check_foreign_key_workspace_id
 from moodle import validate_ecourses_response
@@ -48,7 +48,7 @@ async def get_user_enrolled_courses(
         await validate_ecourses_response(response_json)
 
     # Исключение курсов, уже добавленных в базу данных
-    existing_subjects = await get_subjects_from_workspace(
+    existing_subjects = await get_subjects_by_workspace_id(
         session=session,
         workspace_id=target_workspace_id,
     )

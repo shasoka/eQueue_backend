@@ -6,10 +6,11 @@ from core.exceptions import (
     UniqueConstraintViolationException,
 )
 from core.models.entities import Subject
+from crud.workspace_members import check_if_user_is_workspace_member
 from crud.workspaces import check_foreign_key_workspace_id
 
 
-__all__ = ("get_subjects_from_workspace",)
+__all__ = ("get_subjects_by_workspace_id",)
 
 
 # --- Проверка ограничений ---
@@ -100,12 +101,22 @@ async def get_subject_by_workspace_id_and_name(
         )
 
 
-async def get_subjects_from_workspace(
+async def get_subjects_by_workspace_id(
     session: AsyncSession,
     workspace_id: int,
+    check_membership: bool = False,
+    user_id: int = None,
 ) -> list[Subject]:
     # Проверка существования рабочего пространства
     await check_foreign_key_workspace_id(session, workspace_id)
+
+    if check_membership:
+        # Проврека является ли пользователь членом рабочего пространства
+        await check_if_user_is_workspace_member(
+            session=session,
+            user_id=user_id,
+            workspace_id=workspace_id,
+        )
 
     subjects = (
         await session.scalars(
