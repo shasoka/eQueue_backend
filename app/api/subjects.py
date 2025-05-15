@@ -12,6 +12,7 @@ from crud.subjects import (
     create_subjects as _create_subjects,
     update_subject,
     get_subject_by_id as _get_subject_by_id,
+    delete_subject as _delete_subject,
 )
 from moodle.auth import get_current_user
 from moodle.subjects.requests import get_user_enrolled_courses
@@ -94,6 +95,19 @@ async def partial_update_subject(
     return await update_subject(
         session=session,
         subject_upd=subject_upd,
+        subject_id=id,
+        current_user_id=current_user.id,
+    )
+
+
+@router.delete("/{id}", response_model=SubjectRead)
+async def delete_subject(
+    id: int,
+    current_user: Annotated[User, Depends(get_current_user)],
+    session: Annotated[AsyncSession, Depends(db_helper.session_getter)],
+) -> Subject:
+    return await _delete_subject(
+        session=session,
         subject_id=id,
         current_user_id=current_user.id,
     )

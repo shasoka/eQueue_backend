@@ -266,3 +266,30 @@ async def update_subject(
     await session.commit()
     await session.refresh(subject)
     return subject
+
+
+# --- Delete ---
+
+
+async def delete_subject(
+    session: AsyncSession,
+    subject_id: int,
+    current_user_id: int,
+) -> Subject:
+    subject: Subject = await get_subject_by_id(
+        session=session,
+        subject_id=subject_id,
+        constraint_check=False,
+    )
+
+    # Проверка является ли пользователь, удаляющий предмет, администратором
+    # рабочего пространства, в котором данный предмет находится
+    await check_if_user_is_workspace_admin(
+        session=session,
+        user_id=current_user_id,
+        workspace_id=subject.workspace_id,
+    )
+
+    await session.delete(subject)
+    await session.commit()
+    return subject
