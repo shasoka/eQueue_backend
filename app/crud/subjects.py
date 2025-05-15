@@ -1,11 +1,12 @@
-from sqlalchemy import select
+from sqlalchemy import select, Select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from core.exceptions import (
+    ForeignKeyViolationException,
     NoEntityFoundException,
     UniqueConstraintViolationException,
 )
-from core.models.entities import Subject, User
+from core.models import Subject
 from core.schemas.subjects import SubjectCreate, SubjectUpdate
 from crud.workspace_members import (
     check_if_user_is_workspace_admin,
@@ -15,6 +16,20 @@ from crud.workspaces import check_foreign_key_workspace_id
 
 
 __all__ = ("get_subjects_by_workspace_id",)
+
+
+# --- Проверка ограничений внешнего ключа ---
+
+
+async def check_foreign_key_subject_id(
+    session: AsyncSession,
+    subject_id: int,
+) -> None:
+    if not await get_subject_by_id(session, subject_id):
+        raise ForeignKeyViolationException(
+            f"Нарушено ограничение внешнего ключа subject_id: "
+            f"значение {subject_id} не существует в столбце id таблицы subjects."
+        )
 
 
 # --- Проверка ограничений ---
@@ -148,48 +163,26 @@ async def get_subject_by_workspace_id_and_ecourses_id(
     session: AsyncSession,
     workspace_id: int,
     ecourses_id: int,
-    constraint_check: bool = True,
 ) -> Subject | None:
-    if subject := (
-        await session.scalars(
-            select(Subject).where(
-                Subject.workspace_id == workspace_id,
-                Subject.ecourses_id == ecourses_id,
-            )
-        )
-    ).one_or_none():
-        return subject
-    elif constraint_check:
-        return None
-    else:
-        raise NoEntityFoundException(
-            f"Предмет с ecourses_id={ecourses_id} и "
-            f"workspace_id={workspace_id} не найден"
-        )
+    stmt: Select = select(Subject).where(
+        Subject.workspace_id == workspace_id,
+        Subject.ecourses_id == ecourses_id,
+    )
+
+    return (await session.scalars(stmt)).one_or_none()
 
 
 async def get_subject_by_workspace_id_and_name(
     session: AsyncSession,
     workspace_id: int,
     name: str,
-    constraint_check: bool = True,
 ) -> Subject | None:
-    if subject := (
-        await session.scalars(
-            select(Subject).where(
-                Subject.workspace_id == workspace_id,
-                Subject.name == name,
-            )
-        )
-    ).one_or_none():
-        return subject
-    elif constraint_check:
-        return None
-    else:
-        raise NoEntityFoundException(
-            f"Предмет с name={name} и "
-            f"workspace_id={workspace_id} не найден"
-        )
+    stmt: Select = select(Subject).where(
+        Subject.workspace_id == workspace_id,
+        Subject.name == name,
+    )
+
+    return (await session.scalars(stmt)).one_or_none()
 
 
 async def get_subjects_by_workspace_id(
