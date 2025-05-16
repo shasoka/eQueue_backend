@@ -9,6 +9,7 @@ from core.exceptions import (
     ForeignKeyViolationException,
     GroupIDMismatchException,
     UserIsNotWorkspaceAdminException,
+    AccessTokenException,
 )
 
 
@@ -59,7 +60,7 @@ def register_exceptions_handlers(app: FastAPI) -> None:
 
     # noinspection PyUnusedLocal
     @app.exception_handler(UnclassifiedMoodleException)
-    async def handle_access_token_exception(
+    async def handle_unclassified_moodle_exception(
         request: Request,
         exc: UnclassifiedMoodleException,
     ) -> ORJSONResponse:
@@ -67,6 +68,20 @@ def register_exceptions_handlers(app: FastAPI) -> None:
             status_code=status.HTTP_403_FORBIDDEN,
             content={
                 "message": "Ограничение доступа со стороны еКурсов",
+                "error": str(exc),
+            },
+        )
+
+    # noinspection PyUnusedLocal
+    @app.exception_handler(AccessTokenException)
+    async def handle_access_token_exception(
+        request: Request,
+        exc: AccessTokenException,
+    ) -> ORJSONResponse:
+        return ORJSONResponse(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            content={
+                "message": "Пользователь на авторизован",
                 "error": str(exc),
             },
             headers={"Token-Alive": "false"},

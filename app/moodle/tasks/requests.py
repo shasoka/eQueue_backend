@@ -1,7 +1,10 @@
 import httpx
 from urllib.parse import quote_plus as url_encode
 
+from sqlalchemy.ext.asyncio import AsyncSession
+
 from core.config import settings
+from core.models import Task, User
 from core.schemas.tasks import TaskCreate
 from moodle import validate_ecourses_response
 
@@ -17,12 +20,13 @@ async def _has_duplicate(
 
 
 async def get_tasks_from_course_structure(
-    token: str,
+    current_user: User,
     subject_ecourses_id: int,
     subject_id: int,
+    session: AsyncSession,
 ) -> list[TaskCreate]:
     url = settings.moodle.course_structure_url % (
-        url_encode(token),
+        url_encode(current_user.access_token),
         url_encode(str(subject_ecourses_id)),
     )
 
@@ -33,15 +37,34 @@ async def get_tasks_from_course_structure(
     if not isinstance(response, list):
         await validate_ecourses_response(response_json)
 
+    # Получение уже имеющихся заданий по данному предмету для дальнейшего
+    # исключения дубликатов
+    from crud.tasks import get_tasks_by_subject_id
+
+    existing_tasks: list[Task] = await get_tasks_by_subject_id(
+        session=session,
+        subject_id=subject_id,
+        current_user=current_user,
+    )
+
+    existing_task_names: list[str] = [task.name for task in existing_tasks]
+
     result = []
     for structure_node in response.json():
         for module in structure_node["modules"]:
             if module["modname"] == "assign":  # assign - прикрепляемое задание
+                # Проверка дубликтов в рамках текущего парсинга
+                module["name"] = module["name"].strip()
                 if await _has_duplicate(
                     result,
                     module["name"],
                 ):
                     module["name"] += f" ({structure_node["name"]})"
+
+                # Проверка дубликатов среди уже имеющихся заданий
+                if module["name"] in existing_task_names:
+                    continue
+
                 result.append(
                     TaskCreate.model_validate(
                         {

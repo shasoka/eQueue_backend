@@ -9,7 +9,7 @@ class TaskBase(BaseModel):
 
 
 class TaskCreate(TaskBase):
-    pass
+    subject_id: int
 
 
 class TaskRead(TaskBase):

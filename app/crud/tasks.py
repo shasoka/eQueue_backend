@@ -1,7 +1,10 @@
 from sqlalchemy import Select, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from core.exceptions import UniqueConstraintViolationException
+from core.exceptions import (
+    NoEntityFoundException,
+    UniqueConstraintViolationException,
+)
 from core.models import Subject, Task, User
 from core.schemas.tasks import TaskCreate
 from crud.subjects import check_foreign_key_subject_id, get_subject_by_id
@@ -25,7 +28,46 @@ async def check_complex_unique_subject_id_name(
         )
 
 
+async def check_if_user_is_permitted_to_get_tasks(
+    session: AsyncSession,
+    task: Task,
+    user_id: int = None,
+):
+    # Получение предмета
+    # None не вернется, т.к. уже был передан task
+    _ = await get_subject_by_id(
+        session=session,
+        subject_id=task.subject_id,
+        constraint_check=False,
+        # Проверка членства пользователя в этой же функции
+        check_membership=True,
+        user_id=user_id,
+    )
+
+
 # --- Read ---
+
+
+async def get_task_by_id(
+    session: AsyncSession,
+    task_id: int,
+    constraint_check: bool = True,
+    check_membership: bool = False,
+    user_id: int = None,
+) -> Task | None:
+    if task := await session.get(Task, task_id):
+        if check_membership:
+            # noinspection PyTypeChecker
+            await check_if_user_is_permitted_to_get_tasks(
+                session=session,
+                task=task,
+                user_id=user_id,
+            )
+        return task
+    elif constraint_check:
+        return None
+    else:
+        raise NoEntityFoundException(f"Задание с id={task_id} не найдено")
 
 
 async def get_task_by_subject_id_and_name(
@@ -60,9 +102,10 @@ async def get_tasks_from_ecourses(
     )
 
     return await get_tasks_from_course_structure(
-        token=current_user.access_token,
+        current_user=current_user,
         subject_ecourses_id=subject.ecourses_id,
         subject_id=target_subject_id,
+        session=session,
     )
 
 

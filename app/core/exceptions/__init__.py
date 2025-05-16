@@ -3,7 +3,10 @@ from .orm_exceptions import (
     UniqueConstraintViolationException,
     NoEntityFoundException,
 )
-from .moodle_exceptions import UnclassifiedMoodleException
+from .moodle_exceptions import (
+    UnclassifiedMoodleException,
+    AccessTokenException,
+)
 from .business_logic_exceptions import (
     GroupIDMismatchException,
     UserIsNotWorkspaceAdminException,
@@ -20,4 +23,5 @@ __all__ = (
     "GroupIDMismatchException",
     "UserIsNotWorkspaceAdminException",
     "AdminSuicideException",
+    "AccessTokenException",
 )
