@@ -5,7 +5,10 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from core.models import db_helper, Submission, User
 from core.schemas.submissions import SubmissionRead
-from crud.submissions import create_submission as _create_submission
+from crud.submissions import (
+    create_submission as _create_submission,
+    delete_submission_by_user_id_and_task_id,
+)
 from moodle.auth import get_current_user
 
 __all__ = ("router",)
@@ -23,4 +26,17 @@ async def create_submission(
         session=session,
         task_id=tid,
         current_user_id=current_user.id,
+    )
+
+
+@router.delete("/{tid}", response_model=SubmissionRead)
+async def delete_submission(
+    tid: int,
+    current_user: Annotated[User, Depends(get_current_user)],
+    session: Annotated[AsyncSession, Depends(db_helper.session_getter)],
+) -> Submission:
+    return await delete_submission_by_user_id_and_task_id(
+        session=session,
+        user_id=current_user.id,
+        task_id=tid,
     )

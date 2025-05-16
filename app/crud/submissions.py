@@ -108,3 +108,31 @@ async def get_submission_by_user_id_and_task_id(
     )
 
     return (await session.scalars(stmt)).one_or_none()
+
+
+# --- Delete ---
+
+
+async def delete_submission_by_user_id_and_task_id(
+    session: AsyncSession,
+    user_id: int,
+    task_id: int,
+) -> Submission:
+    # Проверка является ли пользователь членом рабочего пространства, в
+    # котором находится помечаемое задание
+    await check_if_user_is_permitted_to_get_submissions(
+        session=session,
+        task_id=task_id,
+        user_id=user_id,
+    )
+
+    submission: Submission = await get_submission_by_user_id_and_task_id(
+        session=session,
+        user_id=user_id,
+        task_id=task_id,
+    )
+
+    await session.delete(submission)
+    await session.commit()
+
+    return submission
