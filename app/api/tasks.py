@@ -5,13 +5,15 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from core.config import settings
 from core.models import db_helper, Task, User
-from core.schemas.tasks import TaskCreate, TaskRead
+from core.schemas.tasks import TaskCreate, TaskRead, TaskUpdate
 
 from crud.tasks import (
     get_tasks_from_ecourses,
     get_tasks_by_subject_id as _get_tasks_by_subject_id,
     get_task_by_id as _get_task_by_id,
     create_tasks as _create_tasks,
+    update_task,
+    delete_task as _delete_task,
 )
 
 from moodle.auth import get_current_user
@@ -80,4 +82,32 @@ async def get_task_by_id(
         constraint_check=False,
         check_membership=True,
         user_id=current_user.id,
+    )
+
+
+@router.patch("/{id}", response_model=TaskRead)
+async def partial_update_task(
+    id: int,
+    task_upd: TaskUpdate,
+    current_user: Annotated[User, Depends(get_current_user)],
+    session: Annotated[AsyncSession, Depends(db_helper.session_getter)],
+) -> Task:
+    return await update_task(
+        session=session,
+        task_upd=task_upd,
+        task_id=id,
+        current_user_id=current_user.id,
+    )
+
+
+@router.delete("/{id}", response_model=TaskRead)
+async def delete_task(
+    id: int,
+    current_user: Annotated[User, Depends(get_current_user)],
+    session: Annotated[AsyncSession, Depends(db_helper.session_getter)],
+) -> Task:
+    return await _delete_task(
+        session=session,
+        task_id=id,
+        current_user_id=current_user.id,
     )

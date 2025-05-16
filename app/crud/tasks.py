@@ -6,7 +6,7 @@ from core.exceptions import (
     UniqueConstraintViolationException,
 )
 from core.models import Subject, Task, User
-from core.schemas.tasks import TaskCreate
+from core.schemas.tasks import TaskCreate, TaskUpdate
 from crud.subjects import check_foreign_key_subject_id, get_subject_by_id
 from crud.workspace_members import check_if_user_is_workspace_admin
 from moodle.tasks import get_tasks_from_course_structure
@@ -45,7 +45,7 @@ async def check_if_user_is_permitted_to_get_tasks(
     )
 
 
-async def check_if_user_is_permitted_to_add_tasks(
+async def check_if_user_is_permitted_to_modify_tasks(
     session: AsyncSession,
     subject_id: int,
     user_id: int = None,
@@ -93,7 +93,7 @@ async def create_tasks(
 
         # Проверка является ли пользователь администратором рабочего
         # пространства
-        await check_if_user_is_permitted_to_add_tasks(
+        await check_if_user_is_permitted_to_modify_tasks(
             session=session,
             user_id=user_id,
             subject_id=subject_id,
@@ -212,3 +212,77 @@ async def get_tasks_by_subject_id(
     stmt: Select = select(Task).where(Task.subject_id == subject_id)
     tasks: list[Task] = list((await session.scalars(stmt)).all())
     return tasks
+
+
+# --- Update ---
+
+
+async def update_task(
+    session: AsyncSession,
+    task_upd: TaskUpdate,
+    task_id: int,
+    current_user_id: int,
+) -> Task:
+    task: Task = await get_task_by_id(
+        session=session,
+        task_id=task_id,
+        constraint_check=False,
+    )
+
+    # --- Ограничения уникальности ---
+
+    # Проверка является ли пользователь администратором рабочего
+    # пространства, в котором находится предмет, задание по которому
+    # обновляется
+    await check_if_user_is_permitted_to_modify_tasks(
+        session=session,
+        user_id=current_user_id,
+        subject_id=task.subject_id,
+    )
+
+    # Проверка пришедшего имени задания на уникальность в рамках данного
+    # предмета
+    if task.name != task_upd.name:
+        await check_complex_unique_subject_id_name(
+            session=session,
+            subject_id=task.subject_id,
+            name=task_upd.name,
+        )
+
+    # ---
+
+    task_upd: dict = task_upd.model_dump(exclude_unset=True)
+
+    for key, value in task_upd.items():
+        setattr(task, key, value)
+    await session.commit()
+    await session.refresh(task)
+    return task
+
+
+# --- Delete ---
+
+
+async def delete_task(
+    session: AsyncSession,
+    task_id: int,
+    current_user_id: int,
+) -> Task:
+    task: Task = await get_task_by_id(
+        session=session,
+        task_id=task_id,
+        constraint_check=False,
+    )
+
+    # Проверка является ли пользователь администратором рабочего
+    # пространства, в котором находится предмет, задание по которому
+    # удаляется
+    await check_if_user_is_permitted_to_modify_tasks(
+        session=session,
+        user_id=current_user_id,
+        subject_id=task.subject_id,
+    )
+
+    await session.delete(task)
+    await session.commit()
+    return task
