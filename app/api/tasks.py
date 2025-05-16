@@ -11,6 +11,7 @@ from crud.tasks import (
     get_tasks_from_ecourses,
     get_tasks_by_subject_id as _get_tasks_by_subject_id,
     get_task_by_id as _get_task_by_id,
+    create_tasks as _create_tasks,
 )
 
 from moodle.auth import get_current_user
@@ -18,6 +19,21 @@ from moodle.auth import get_current_user
 __all__ = ("router",)
 
 router = APIRouter()
+
+
+@router.post("/{sid}", response_model=list[TaskRead])
+async def create_tasks(
+    sid: int,
+    tasks_in: list[TaskCreate],
+    current_user: Annotated[User, Depends(get_current_user)],
+    session: Annotated[AsyncSession, Depends(db_helper.session_getter)],
+) -> list[Task]:
+    return await _create_tasks(
+        session=session,
+        tasks_in=tasks_in,
+        subject_id=sid,
+        user_id=current_user.id,
+    )
 
 
 @router.get(

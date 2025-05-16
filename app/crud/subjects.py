@@ -78,6 +78,11 @@ async def create_subjects(
     user_id: int,
     session: AsyncSession,
 ) -> list[Subject]:
+    # Проверка существования рабочего пространства
+    await check_foreign_key_workspace_id(
+        session=session,
+        workspace_id=workspace_id,
+    )
 
     added_subjects: list[Subject] = []
 
@@ -87,12 +92,6 @@ async def create_subjects(
         subject: Subject = Subject(**subject.model_dump())
 
         # --- Ограничения уникальности ---
-
-        # Проверка существования рабочего пространства
-        await check_foreign_key_workspace_id(
-            session=session,
-            workspace_id=workspace_id,
-        )
 
         # Проверка является ли пользователь администратором рабочего
         # пространства

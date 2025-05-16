@@ -45,6 +45,86 @@ async def check_if_user_is_permitted_to_get_tasks(
     )
 
 
+async def check_if_user_is_permitted_to_add_tasks(
+    session: AsyncSession,
+    subject_id: int,
+    user_id: int = None,
+):
+    # Получение предмета
+    # None не вернется, т.к. уже был передан task
+    subject: Subject = await get_subject_by_id(
+        session=session,
+        subject_id=subject_id,
+        constraint_check=False,
+    )
+
+    # Проверка является ли пользователь администратором рабочего
+    # пространства
+    await check_if_user_is_workspace_admin(
+        session=session,
+        user_id=user_id,
+        workspace_id=subject.workspace_id,
+    )
+
+
+# --- Create ---
+
+
+async def create_tasks(
+    session: AsyncSession,
+    tasks_in: list[TaskCreate],
+    subject_id: int,
+    user_id: int,
+) -> list[Task]:
+    # Проверка существования предмета
+    await check_foreign_key_subject_id(
+        session=session,
+        subject_id=subject_id,
+    )
+
+    added_tasks: list[Task] = []
+
+    for task in tasks_in:
+        # noinspection PyUnresolvedReferences
+        # Распаковка pydantic-модели в SQLAlchemy-модель
+        task: Task = Task(**task.model_dump())
+
+        # --- Ограничения уникальности ---
+
+        # Проверка является ли пользователь администратором рабочего
+        # пространства
+        await check_if_user_is_permitted_to_add_tasks(
+            session=session,
+            user_id=user_id,
+            subject_id=subject_id,
+        )
+
+        try:
+            # Проверка составного ограничения уникальности workspace_id и ecourses_id
+            await check_complex_unique_subject_id_name(
+                session=session,
+                subject_id=subject_id,
+                name=task.name,
+            )
+
+        except:
+            continue
+
+        # ---
+
+        # subject_id устанавливается в соответствии с переданным параметром
+        task.subject_id = subject_id
+
+        # Запись задания в БД
+        session.add(task)
+        await session.flush()
+
+        added_tasks.append(task)
+
+    await session.commit()
+    return added_tasks
+
+
 # --- Read ---
 
 
