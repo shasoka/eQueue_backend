@@ -64,6 +64,15 @@ class ApiTasks(BaseModel):
     from_subject: str = "/from_subject"
 
 
+class ApiSubmissions(BaseModel):
+    prefix: str = "/submissions"
+    tags: list[str] = ["Submissions"]
+
+    # --- Endpoints ---
+
+    from_task: str = "/from_task"
+
+
 class ApiBase(BaseModel):
     prefix: str = "/api"
     tags: list[str] = ["eQueue Api"]
@@ -80,6 +89,7 @@ class ApiBase(BaseModel):
     workspace_members: ApiWorkspaceMembers = ApiWorkspaceMembers()
     subjects: ApiSubjects = ApiSubjects()
     tasks: ApiTasks = ApiTasks()
+    submissions: ApiSubmissions = ApiSubmissions()
 
 
 class MoodleAPI(BaseModel):

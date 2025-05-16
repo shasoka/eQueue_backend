@@ -8,3 +8,7 @@ class UserIsNotWorkspaceAdminException(Exception):
 
 class AdminSuicideException(Exception):
     pass
+
+
+class SubmissionForbiddenException(Exception):
+    pass

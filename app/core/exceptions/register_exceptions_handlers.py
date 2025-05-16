@@ -2,6 +2,7 @@ from fastapi import FastAPI, Request, status
 from fastapi.responses import ORJSONResponse
 
 from core.exceptions import (
+    SubmissionForbiddenException,
     UnclassifiedMoodleException,
     AdminSuicideException,
     NoEntityFoundException,
@@ -110,6 +111,20 @@ def register_exceptions_handlers(app: FastAPI) -> None:
     ) -> ORJSONResponse:
         return ORJSONResponse(
             status_code=status.HTTP_409_CONFLICT,
+            content={
+                "message": "Нарушено ограничение бизнес-логики",
+                "error": str(exc),
+            },
+        )
+
+    # noinspection PyUnusedLocal
+    @app.exception_handler(SubmissionForbiddenException)
+    async def handle_submission_forbidden_exception(
+        request: Request,
+        exc: SubmissionForbiddenException,
+    ) -> ORJSONResponse:
+        return ORJSONResponse(
+            status_code=status.HTTP_403_FORBIDDEN,
             content={
                 "message": "Нарушено ограничение бизнес-логики",
                 "error": str(exc),

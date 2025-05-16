@@ -9,6 +9,7 @@ from .moodle_exceptions import (
 )
 from .business_logic_exceptions import (
     GroupIDMismatchException,
+    SubmissionForbiddenException,
     UserIsNotWorkspaceAdminException,
     AdminSuicideException,
 )
@@ -24,4 +25,5 @@ __all__ = (
     "UserIsNotWorkspaceAdminException",
     "AdminSuicideException",
     "AccessTokenException",
+    "SubmissionForbiddenException",
 )

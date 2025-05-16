@@ -2,6 +2,7 @@ from sqlalchemy import Select, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from core.exceptions import (
+    ForeignKeyViolationException,
     NoEntityFoundException,
     UniqueConstraintViolationException,
 )
@@ -10,6 +11,20 @@ from core.schemas.tasks import TaskCreate, TaskUpdate
 from crud.subjects import check_foreign_key_subject_id, get_subject_by_id
 from crud.workspace_members import check_if_user_is_workspace_admin
 from moodle.tasks import get_tasks_from_course_structure
+
+
+# --- Проверка ограничений внешнего ключа ---
+
+
+async def check_foreign_key_task_id(
+    session: AsyncSession,
+    task_id: int,
+) -> None:
+    if not await get_task_by_id(session, task_id):
+        raise ForeignKeyViolationException(
+            f"Нарушено ограничение внешнего ключа task_id: "
+            f"значение {task_id} не существует в столбце id таблицы tasks."
+        )
 
 
 # --- Проверка ограничений ---
@@ -30,14 +45,14 @@ async def check_complex_unique_subject_id_name(
 
 async def check_if_user_is_permitted_to_get_tasks(
     session: AsyncSession,
-    task: Task,
+    subject_id: int,
     user_id: int = None,
 ):
     # Получение предмета
     # None не вернется, т.к. уже был передан task
     _ = await get_subject_by_id(
         session=session,
-        subject_id=task.subject_id,
+        subject_id=subject_id,
         constraint_check=False,
         # Проверка членства пользователя в этой же функции
         check_membership=True,
@@ -140,7 +155,7 @@ async def get_task_by_id(
             # noinspection PyTypeChecker
             await check_if_user_is_permitted_to_get_tasks(
                 session=session,
-                task=task,
+                subject_id=task.subject_id,
                 user_id=user_id,
             )
         return task

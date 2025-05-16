@@ -2,7 +2,7 @@ from datetime import datetime
 
 from pydantic import BaseModel
 
-__all__ = ("SubmissionRead", "SubmissionCreate")
+__all__ = ("SubmissionRead",)
 
 
 class SubmissionBase(BaseModel):
@@ -13,7 +13,3 @@ class SubmissionBase(BaseModel):
 class SubmissionRead(SubmissionBase):
     id: int
     submitted_at: datetime
-
-
-class SubmissionCreate(SubmissionBase):
-    pass
