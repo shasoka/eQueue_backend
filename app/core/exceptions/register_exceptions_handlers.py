@@ -2,6 +2,7 @@ from fastapi import FastAPI, Request, status
 from fastapi.responses import ORJSONResponse
 
 from core.exceptions import (
+    SubjectIsOutOfWorkspaceException,
     SubmissionForbiddenException,
     UnclassifiedMoodleException,
     AdminSuicideException,
@@ -122,6 +123,20 @@ def register_exceptions_handlers(app: FastAPI) -> None:
     async def handle_submission_forbidden_exception(
         request: Request,
         exc: SubmissionForbiddenException,
+    ) -> ORJSONResponse:
+        return ORJSONResponse(
+            status_code=status.HTTP_403_FORBIDDEN,
+            content={
+                "message": "Нарушено ограничение бизнес-логики",
+                "error": str(exc),
+            },
+        )
+
+    # noinspection PyUnusedLocal
+    @app.exception_handler(SubjectIsOutOfWorkspaceException)
+    async def handle_subject_is_out_of_workspace_exception(
+        request: Request,
+        exc: SubjectIsOutOfWorkspaceException,
     ) -> ORJSONResponse:
         return ORJSONResponse(
             status_code=status.HTTP_403_FORBIDDEN,

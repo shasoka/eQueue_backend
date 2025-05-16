@@ -42,6 +42,7 @@ class ApiWorkspaceMembers(BaseModel):
     # --- Endpoints ---
 
     all: str = "/all"
+    leaderboard: str = "/leaderboard"
 
 
 class ApiSubjects(BaseModel):

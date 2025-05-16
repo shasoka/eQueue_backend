@@ -12,3 +12,7 @@ class AdminSuicideException(Exception):
 
 class SubmissionForbiddenException(Exception):
     pass
+
+
+class SubjectIsOutOfWorkspaceException(Exception):
+    pass

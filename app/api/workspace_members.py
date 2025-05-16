@@ -1,4 +1,4 @@
-from typing import Annotated, Literal
+from typing import Annotated, Literal, Optional
 
 from fastapi import APIRouter, Depends
 
@@ -10,6 +10,7 @@ from core.config import settings
 from core.models import db_helper, User, WorkspaceMember
 from core.schemas.workspace_members import (
     WorkspaceMemberCreate,
+    WorkspaceMemberLeaderboardEntry,
     WorkspaceMemberRead,
     WorkspaceMemberUpdate,
 )
@@ -19,6 +20,7 @@ from crud.workspace_members import (
     get_workspace_member_by_id as _get_workspace_member_by_id,
     get_workspace_members_by_workspace_id_and_status as _get_workspace_members_by_workspace_id_and_status,
     create_workspace_member as _create_workspace_member,
+    get_workspace_members_leaderboard_by_subject_submissions_count,
     update_workspace_member,
     delete_workspace_member as _delete_workspace_member,
 )
@@ -58,6 +60,26 @@ async def get_workspace_members_by_workspace_id_and_status(
         workspace_id=id,
         user_id=current_user.id,
         status=status,
+    )
+
+
+@router.get(
+    settings.api.workspace_members.leaderboard + "/{wid}",
+    response_model=list[WorkspaceMemberLeaderboardEntry],
+)
+async def get_workspace_leaderboard_by_subject(
+    wid: int,
+    current_user: Annotated[User, Depends(get_current_user)],
+    session: Annotated[AsyncSession, Depends(db_helper.session_getter)],
+    sid: int | None = None,
+) -> list[WorkspaceMemberLeaderboardEntry]:
+    return (
+        await get_workspace_members_leaderboard_by_subject_submissions_count(
+            session=session,
+            workspace_id=wid,
+            user_id=current_user.id,
+            subject_id=sid,
+        )
     )
 
 

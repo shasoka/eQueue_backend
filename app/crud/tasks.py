@@ -1,3 +1,5 @@
+from datetime import datetime
+
 from sqlalchemy import Select, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
@@ -10,7 +12,10 @@ from core.exceptions import (
 from core.models import Subject, Task, User
 from core.schemas.tasks import TaskCreate, TaskReadWithSubmission, TaskUpdate
 from crud.subjects import check_foreign_key_subject_id, get_subject_by_id
-from crud.workspace_members import check_if_user_is_workspace_admin
+from crud.workspace_members import (
+    check_if_user_is_workspace_admin,
+    check_if_user_is_workspace_member,
+)
 from moodle.tasks import get_tasks_from_course_structure
 
 
@@ -208,7 +213,8 @@ async def get_tasks_from_ecourses(
 async def get_tasks_by_subject_id(
     session: AsyncSession,
     subject_id: int,
-    current_user: User,
+    # При получении лидерборда не требуется проверка членства
+    current_user: User | None = None,
 ) -> list[Task]:
     # Получение предмета и проверка его существования
     subject: Subject = await get_subject_by_id(
@@ -217,13 +223,14 @@ async def get_tasks_by_subject_id(
         constraint_check=False,
     )
 
-    # Проверка является ли пользователь, запришивающий задания,
-    # администратором рабочего пространства, в котором находится данный предмет
-    await check_if_user_is_workspace_admin(
-        session=session,
-        user_id=current_user.id,
-        workspace_id=subject.workspace_id,
-    )
+    if current_user is not None:
+        # Проверка является ли пользователь, запришивающий задания,
+        # администратором рабочего пространства, в котором находится данный предмет
+        await check_if_user_is_workspace_member(
+            session=session,
+            user_id=current_user.id,
+            workspace_id=subject.workspace_id,
+        )
 
     stmt: Select = select(Task).where(Task.subject_id == subject_id)
     tasks: list[Task] = list((await session.scalars(stmt)).all())
@@ -244,7 +251,7 @@ async def get_tasks_by_subject_id_with_submissions(
 
     # Проверка является ли пользователь, запришивающий задания,
     # администратором рабочего пространства, в котором находится данный предмет
-    await check_if_user_is_workspace_admin(
+    await check_if_user_is_workspace_member(
         session=session,
         user_id=current_user.id,
         workspace_id=subject.workspace_id,
@@ -261,9 +268,13 @@ async def get_tasks_by_subject_id_with_submissions(
 
     for task in tasks:
         # Проверяем наличие хотя бы одной submission от текущего пользователя
-        submitted: bool = any(
-            sub.user_id == current_user.id for sub in task.submissions
-        )
+        submitted: bool = False
+        submitted_at: datetime | None = None
+        for sub in task.submissions:
+            if sub.user_id == current_user.id:
+                submitted = True
+                submitted_at = sub.submitted_at
+                break
 
         # Формируем объект TaskRead
         task_read = TaskReadWithSubmission(
@@ -272,6 +283,7 @@ async def get_tasks_by_subject_id_with_submissions(
             name=task.name,
             url=task.url,
             submitted=submitted,
+            submitted_at=submitted_at,
         )
         tasks_with_submissions.append(task_read)
 

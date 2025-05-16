@@ -1,3 +1,5 @@
+from datetime import datetime
+
 from pydantic import BaseModel
 
 __all__ = ("TaskCreate", "TaskRead", "TaskUpdate")
@@ -19,6 +21,7 @@ class TaskRead(TaskBase):
 
 class TaskReadWithSubmission(TaskRead):
     submitted: bool
+    submitted_at: datetime | None
 
 
 class TaskUpdate(BaseModel):

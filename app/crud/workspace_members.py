@@ -9,15 +9,17 @@ from sqlalchemy.orm import selectinload
 from core.exceptions import (
     AdminSuicideException,
     NoEntityFoundException,
+    SubjectIsOutOfWorkspaceException,
     UniqueConstraintViolationException,
     UserIsNotWorkspaceAdminException,
 )
-from core.models import WorkspaceMember
+from core.models import Subject, Task, User, WorkspaceMember
 from core.schemas.workspace_members import (
     WorkspaceMemberCreate,
+    WorkspaceMemberLeaderboardEntry,
     WorkspaceMemberUpdate,
 )
-from crud.users import check_foreign_key_user_id
+from crud.users import check_foreign_key_user_id, get_user_by_id
 from crud.workspaces import check_foreign_key_workspace_id
 
 __all__ = (
@@ -190,7 +192,7 @@ async def get_workspace_members_by_user_id(
 async def get_workspace_members_by_workspace_id_and_status(
     session: AsyncSession,
     workspace_id: int,
-    user_id: int,
+    user_id: int | None = None,
     status: Literal["approved", "pending", "rejected", "*"] = "approved",
 ) -> list[WorkspaceMember]:
 
@@ -243,6 +245,123 @@ async def get_workspace_members_count_by_workspace_id(
         .where(WorkspaceMember.workspace_id == workspace_id)
     )
     return (await session.execute(stmt)).scalar_one()
+
+
+async def get_workspace_members_leaderboard_by_subject_submissions_count(
+    session: AsyncSession,
+    workspace_id: int,
+    user_id: int,
+    subject_id: int | None = None,
+) -> list[WorkspaceMemberLeaderboardEntry]:
+    # Проверка того, что пользователь, запрашивающий лидерборд, является
+    # членом данного рабочего пространства
+    await check_if_user_is_workspace_member(
+        session=session,
+        user_id=user_id,
+        workspace_id=workspace_id,
+    )
+
+    # Получаем список членов рабочего пространства, статус которых "approved"
+    members: list[WorkspaceMember] = (
+        await get_workspace_members_by_workspace_id_and_status(
+            session=session,
+            workspace_id=workspace_id,
+        )
+    )
+
+    leaderboard: list[WorkspaceMemberLeaderboardEntry] = []
+    for member in members:
+        user: User = await get_user_by_id(
+            session=session,
+            id=member.user_id,
+            constraint_check=False,
+        )
+        leaderboard.append(
+            WorkspaceMemberLeaderboardEntry(
+                user_id=member.user_id,
+                first_name=user.first_name,
+                second_name=user.second_name,
+                profile_pic_url=user.profile_pic_url,
+                submissions_count=0,
+            )
+        )
+
+    # Если нужен лидерборд по конкретному предмету
+    if subject_id is not None:
+        # Данная функция вызовет исключение в случае, если такой предмет не
+        # найден
+        from crud.subjects import get_subject_by_id
+
+        subject: Subject = await get_subject_by_id(
+            session=session,
+            subject_id=subject_id,
+            constraint_check=False,
+        )
+
+        if subject.workspace_id != workspace_id:
+            raise SubjectIsOutOfWorkspaceException(
+                f"Предмет с id={subject_id} не принадлежит рабочему "
+                f"пространству с id={workspace_id}"
+            )
+
+        # Получаем пул заданий данного предмета
+        from crud.tasks import get_tasks_by_subject_id
+
+        tasks: list[Task] = await get_tasks_by_subject_id(
+            session=session,
+            subject_id=subject.id,
+        )
+
+        for member in leaderboard:
+            for task in tasks:
+                from crud.submissions import (
+                    get_submission_by_user_id_and_task_id,
+                )
+
+                if await get_submission_by_user_id_and_task_id(
+                    session=session,
+                    user_id=member.user_id,
+                    task_id=task.id,
+                ):
+                    member.submissions_count += 1
+    # Если нужен лидерборд по всем предметам
+    else:
+        from crud.subjects import get_subjects_by_workspace_id
+
+        subjects: list[Subject] = await get_subjects_by_workspace_id(
+            session=session,
+            workspace_id=workspace_id,
+        )
+
+        for member in leaderboard:
+            for subject in subjects:
+                from crud.tasks import get_tasks_by_subject_id
+
+                tasks: list[Task] = await get_tasks_by_subject_id(
+                    session=session,
+                    subject_id=subject.id,
+                )
+
+                for task in tasks:
+                    from crud.submissions import (
+                        get_submission_by_user_id_and_task_id,
+                    )
+
+                    if await get_submission_by_user_id_and_task_id(
+                        session=session,
+                        user_id=member.user_id,
+                        task_id=task.id,
+                    ):
+                        member.submissions_count += 1
+
+    # Сортировка по количеству заданий и имени
+    return sorted(
+        leaderboard,
+        key=lambda entry: (
+            -entry.submissions_count,
+            entry.second_name.lower(),
+        ),
+    )
 
 
 # --- Update ---

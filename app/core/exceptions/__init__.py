@@ -12,6 +12,7 @@ from .business_logic_exceptions import (
     SubmissionForbiddenException,
     UserIsNotWorkspaceAdminException,
     AdminSuicideException,
+    SubjectIsOutOfWorkspaceException,
 )
 from .register_exceptions_handlers import register_exceptions_handlers
 
@@ -26,4 +27,5 @@ __all__ = (
     "AdminSuicideException",
     "AccessTokenException",
     "SubmissionForbiddenException",
+    "SubjectIsOutOfWorkspaceException",
 )

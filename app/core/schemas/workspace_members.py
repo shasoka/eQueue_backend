@@ -27,5 +27,13 @@ class WorkspaceMemberRead(WorkspaceMemberBase):
     joined_at: datetime
 
 
+class WorkspaceMemberLeaderboardEntry(BaseModel):
+    user_id: int
+    first_name: str
+    second_name: str
+    profile_pic_url: str
+    submissions_count: int
+
+
 class WorkspaceMemberUpdate(BaseModel):
     status: Literal["approved", "pending", "rejected"] | None = None
