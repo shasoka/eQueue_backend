@@ -64,3 +64,28 @@ async def get_tasks_from_ecourses(
         subject_ecourses_id=subject.ecourses_id,
         subject_id=target_subject_id,
     )
+
+
+async def get_tasks_by_subject_id(
+    session: AsyncSession,
+    subject_id: int,
+    current_user: User,
+) -> list[Task]:
+    # Получение предмета и проверка его существования
+    subject: Subject = await get_subject_by_id(
+        session=session,
+        subject_id=subject_id,
+        constraint_check=False,
+    )
+
+    # Проверка является ли пользователь, запришивающий задания,
+    # администратором рабочего пространства, в котором находится данный предмет
+    await check_if_user_is_workspace_admin(
+        session=session,
+        user_id=current_user.id,
+        workspace_id=subject.workspace_id,
+    )
+
+    stmt: Select = select(Task).where(Task.subject_id == subject_id)
+    tasks: list[Task] = list((await session.scalars(stmt)).all())
+    return tasks

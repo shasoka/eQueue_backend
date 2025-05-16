@@ -61,6 +61,7 @@ class ApiTasks(BaseModel):
     # --- Endpoints ---
 
     from_ecourses: str = "/from_ecourses"
+    from_subject: str = "/from_subject"
 
 
 class ApiBase(BaseModel):
