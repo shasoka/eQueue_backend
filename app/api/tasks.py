@@ -5,7 +5,12 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from core.config import settings
 from core.models import db_helper, Task, User
-from core.schemas.tasks import TaskCreate, TaskRead, TaskUpdate
+from core.schemas.tasks import (
+    TaskCreate,
+    TaskRead,
+    TaskReadWithSubmission,
+    TaskUpdate,
+)
 
 from crud.tasks import (
     get_tasks_from_ecourses,
@@ -14,6 +19,7 @@ from crud.tasks import (
     create_tasks as _create_tasks,
     update_task,
     delete_task as _delete_task,
+    get_tasks_by_subject_id_with_submissions as _get_tasks_by_subject_id_with_submissions,
 )
 
 from moodle.auth import get_current_user
@@ -64,6 +70,22 @@ async def get_tasks_by_subject_id(
     session: Annotated[AsyncSession, Depends(db_helper.session_getter)],
 ) -> list[Task]:
     return await _get_tasks_by_subject_id(
+        session=session,
+        subject_id=sid,
+        current_user=current_user,
+    )
+
+
+@router.get(
+    settings.api.tasks.from_subject_with_submissions + "/{sid}",
+    response_model=list[TaskReadWithSubmission],
+)
+async def get_tasks_by_subject_id_with_submissions(
+    sid: int,
+    current_user: Annotated[User, Depends(get_current_user)],
+    session: Annotated[AsyncSession, Depends(db_helper.session_getter)],
+) -> list[TaskReadWithSubmission]:
+    return await _get_tasks_by_subject_id_with_submissions(
         session=session,
         subject_id=sid,
         current_user=current_user,

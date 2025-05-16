@@ -17,6 +17,10 @@ class TaskRead(TaskBase):
     subject_id: int
 
 
+class TaskReadWithSubmission(TaskRead):
+    submitted: bool
+
+
 class TaskUpdate(BaseModel):
     name: str | None = None
     url: str | None = None

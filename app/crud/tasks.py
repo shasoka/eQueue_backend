@@ -1,5 +1,6 @@
 from sqlalchemy import Select, select
 from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.orm import selectinload
 
 from core.exceptions import (
     ForeignKeyViolationException,
@@ -7,7 +8,7 @@ from core.exceptions import (
     UniqueConstraintViolationException,
 )
 from core.models import Subject, Task, User
-from core.schemas.tasks import TaskCreate, TaskUpdate
+from core.schemas.tasks import TaskCreate, TaskReadWithSubmission, TaskUpdate
 from crud.subjects import check_foreign_key_subject_id, get_subject_by_id
 from crud.workspace_members import check_if_user_is_workspace_admin
 from moodle.tasks import get_tasks_from_course_structure
@@ -227,6 +228,54 @@ async def get_tasks_by_subject_id(
     stmt: Select = select(Task).where(Task.subject_id == subject_id)
     tasks: list[Task] = list((await session.scalars(stmt)).all())
     return tasks
+
+
+async def get_tasks_by_subject_id_with_submissions(
+    session: AsyncSession,
+    subject_id: int,
+    current_user: User,
+) -> list[TaskReadWithSubmission]:
+    # Получение предмета и проверка его существования
+    subject: Subject = await get_subject_by_id(
+        session=session,
+        subject_id=subject_id,
+        constraint_check=False,
+    )
+
+    # Проверка является ли пользователь, запришивающий задания,
+    # администратором рабочего пространства, в котором находится данный предмет
+    await check_if_user_is_workspace_admin(
+        session=session,
+        user_id=current_user.id,
+        workspace_id=subject.workspace_id,
+    )
+
+    stmt: Select = (
+        select(Task)
+        .where(Task.subject_id == subject_id)
+        .options(selectinload(Task.submissions))
+    )
+    tasks: list[Task] = list((await session.execute(stmt)).scalars().all())
+
+    tasks_with_submissions: list[TaskReadWithSubmission] = []
+
+    for task in tasks:
+        # Проверяем наличие хотя бы одной submission от текущего пользователя
+        submitted: bool = any(
+            sub.user_id == current_user.id for sub in task.submissions
+        )
+
+        # Формируем объект TaskRead
+        task_read = TaskReadWithSubmission(
+            id=task.id,
+            subject_id=task.subject_id,
+            name=task.name,
+            url=task.url,
+            submitted=submitted,
+        )
+        tasks_with_submissions.append(task_read)
+
+    return tasks_with_submissions
 
 
 # --- Update ---

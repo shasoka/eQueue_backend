@@ -62,6 +62,7 @@ class ApiTasks(BaseModel):
 
     from_ecourses: str = "/from_ecourses"
     from_subject: str = "/from_subject"
+    from_subject_with_submissions: str = "/from_subject_with_submissions"
 
 
 class ApiSubmissions(BaseModel):
