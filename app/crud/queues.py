@@ -145,3 +145,33 @@ async def update_queue(
     await session.commit()
     await session.refresh(queue)
     return queue
+
+
+# --- Delete ---
+
+
+async def delete_queue(
+    session: AsyncSession,
+    subject_id: int,
+    user_id: int = None,
+) -> Queue:
+    # Проверка существования внешнего ключа subject_id
+    await check_foreign_key_subject_id(
+        session=session,
+        subject_id=subject_id,
+    )
+
+    # Получение очереди по subject_id
+    # Тут же происходит проверка является ли пользователь администратором для
+    # удаления очереди
+    queue: Queue = await get_queue_by_subject_id(
+        session=session,
+        subject_id=subject_id,
+        constraint_check=False,
+        check_admin=True,
+        user_id=user_id,
+    )
+
+    await session.delete(queue)
+    await session.commit()
+    return queue

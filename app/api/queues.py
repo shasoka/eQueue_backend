@@ -7,8 +7,9 @@ from core.models import db_helper, Queue, User
 from core.schemas.queues import QueueCreate, QueueRead, QueueUpdate
 from crud.queues import (
     create_queue as _create_queue,
-    update_queue as _update_queue,
+    update_queue,
     get_queue_by_subject_id as _get_queue_by_subject_id,
+    delete_queue,
 )
 from moodle.auth import get_current_user
 
@@ -52,9 +53,22 @@ async def update_queue_by_subject_id(
     session: Annotated[AsyncSession, Depends(db_helper.session_getter)],
     current_user: Annotated[User, Depends(get_current_user)],
 ) -> Queue:
-    return await _update_queue(
+    return await update_queue(
         session=session,
         queue_upd=queue_upd,
+        subject_id=sid,
+        user_id=current_user.id,
+    )
+
+
+@router.delete("/{sid}", response_model=QueueRead)
+async def delete_queue_by_subject_id(
+    sid: int,
+    current_user: Annotated[User, Depends(get_current_user)],
+    session: Annotated[AsyncSession, Depends(db_helper.session_getter)],
+) -> Queue:
+    return await delete_queue(
+        session=session,
         subject_id=sid,
         user_id=current_user.id,
     )
