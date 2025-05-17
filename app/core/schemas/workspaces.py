@@ -1,6 +1,9 @@
 from datetime import datetime
+from typing import Optional
 
 from pydantic import BaseModel
+
+from core.schemas import str255
 
 __all__ = (
     "WorkspaceCreate",
@@ -11,7 +14,7 @@ __all__ = (
 
 class WorkspaceBase(BaseModel):
     group_id: int
-    name: str
+    name: str255
 
 
 class WorkspaceRead(WorkspaceBase):
@@ -27,4 +30,4 @@ class WorkspaceCreate(WorkspaceBase):
 
 
 class WorkspaceUpdate(BaseModel):
-    name: str | None = None
+    name: Optional[str255] = None

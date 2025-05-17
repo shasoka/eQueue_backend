@@ -1,13 +1,16 @@
 from datetime import datetime
+from typing import Optional
 
 from pydantic import BaseModel
+
+from core.schemas import str255
 
 __all__ = ("TaskCreate", "TaskRead", "TaskUpdate")
 
 
 class TaskBase(BaseModel):
-    name: str
-    url: str | None
+    name: str255
+    url: Optional[str255]
 
 
 class TaskCreate(TaskBase):
@@ -25,5 +28,5 @@ class TaskReadWithSubmission(TaskRead):
 
 
 class TaskUpdate(BaseModel):
-    name: str | None = None
-    url: str | None = None
+    name: Optional[str255] = None
+    url: Optional[str255] = None

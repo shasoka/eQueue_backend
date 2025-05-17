@@ -1,6 +1,9 @@
 from datetime import datetime
+from typing import Optional
 
 from pydantic import BaseModel
+
+from core.schemas import str255
 
 
 __all__ = (
@@ -14,19 +17,19 @@ __all__ = (
 
 
 class AccessTokenMixin(BaseModel):
-    access_token: str
+    access_token: str255
 
 
 class UserBase(BaseModel):
     ecourses_id: int
     group_id: int | None = None
-    first_name: str
-    second_name: str
+    first_name: str255
+    second_name: str255
 
     # При создании пользователя это поле будет заполнено БД
-    profile_status: str | None = None
+    profile_status: Optional[str255] = None
 
-    profile_pic_url: str
+    profile_pic_url: str255
 
 
 class UserCreate(UserBase, AccessTokenMixin):
@@ -40,24 +43,24 @@ class UserRead(UserBase):
 
 
 class UserUpdate(BaseModel):
-    access_token: str | None = None
+    access_token: Optional[str255] = None
     group_id: int | None = None
-    profile_status: str | None = None
-    profile_pic_url: str | None = None
+    profile_status: Optional[str255] = None
+    profile_pic_url: Optional[str255] = None
 
 
 class UserAuth(UserRead, AccessTokenMixin):
-    token_type: str = "Bearer"
+    token_type: str255 = "Bearer"
 
 
 class UserLogin(BaseModel):
-    login: str
-    password: str
+    login: str255
+    password: str255
 
 
 class UserInfoFromEcourses(BaseModel):
-    access_token: str
+    access_token: str255
     ecourses_id: int
-    first_name: str
-    second_name: str
-    profile_pic_url: str
+    first_name: str255
+    second_name: str255
+    profile_pic_url: str255

@@ -1,7 +1,10 @@
 from datetime import datetime
-from typing import Literal
+from typing import Literal, Optional
 
 from pydantic import BaseModel
+
+from core.schemas import str255
+
 
 __all__ = (
     "WorkspaceMemberCreate",
@@ -29,11 +32,11 @@ class WorkspaceMemberRead(WorkspaceMemberBase):
 
 class WorkspaceMemberLeaderboardEntry(BaseModel):
     user_id: int
-    first_name: str
-    second_name: str
-    profile_pic_url: str
+    first_name: str255
+    second_name: str255
+    profile_pic_url: str255
     submissions_count: int
 
 
 class WorkspaceMemberUpdate(BaseModel):
-    status: Literal["approved", "pending", "rejected"] | None = None
+    status: Optional[Literal["approved", "pending", "rejected"]] = None

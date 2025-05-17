@@ -1,5 +1,8 @@
+from typing import Optional
+
 from pydantic import BaseModel
 
+from core.schemas import str255
 
 __all__ = (
     "SubjectRead",
@@ -12,11 +15,11 @@ __all__ = (
 class SubjectBase(BaseModel):
     workspace_id: int
     ecourses_id: int | None
-    ecourses_link: str | None
-    professor_name: str | None
-    professor_contact: str | None
-    professor_requirements: str | None
-    name: str
+    ecourses_link: Optional[str255]
+    professor_name: Optional[str255]
+    professor_contact: Optional[str255]
+    professor_requirements: Optional[str255]
+    name: str255
 
 
 class SubjectCreate(BaseModel):
@@ -27,11 +30,11 @@ class SubjectCreate(BaseModel):
     workspace_id: int | None
 
     ecourses_id: int | None
-    ecourses_link: str | None
-    professor_name: str | None
-    professor_contact: str | None
-    professor_requirements: str | None
-    name: str
+    ecourses_link: Optional[str255]
+    professor_name: Optional[str255]
+    professor_contact: Optional[str255]
+    professor_requirements: Optional[str255]
+    name: str255
 
 
 class SubjectRead(SubjectBase):
@@ -40,17 +43,17 @@ class SubjectRead(SubjectBase):
 
 class EcoursesSubjectDescription(BaseModel):
     id: int | None
-    shortname: str | None
-    fullname: str | None
-    displayname: str | None
+    shortname: Optional[str255]
+    fullname: Optional[str255]
+    displayname: Optional[str255]
     lastaccess: int | None
     isfavourite: bool | None
     hidden: bool | None
 
 
 class SubjectUpdate(BaseModel):
-    ecourses_link: str | None = None
-    professor_name: str | None = None
-    professor_contact: str | None = None
-    professor_requirements: str | None = None
-    name: str | None = None
+    ecourses_link: Optional[str255] = None
+    professor_name: Optional[str255] = None
+    professor_contact: Optional[str255] = None
+    professor_requirements: Optional[str255] = None
+    name: Optional[str255] = None
