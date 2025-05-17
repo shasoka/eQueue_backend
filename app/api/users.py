@@ -10,7 +10,7 @@ from fastapi import (
 from fastapi.responses import ORJSONResponse
 from fastapi.security import OAuth2PasswordRequestForm
 from sqlalchemy.ext.asyncio import AsyncSession
-from typing import Annotated
+from typing import Annotated, Optional
 
 from core.config import settings
 from core.models import db_helper, User
@@ -111,7 +111,7 @@ async def am_i_alive(
 async def get_current_user_info(
     current_user: Annotated[User, Depends(get_current_user)],
     session: Annotated[AsyncSession, Depends(db_helper.session_getter)],
-) -> UserRead | None:
+) -> Optional[UserRead]:
     return await _get_user_by_id(
         session=session,
         id=current_user.id,

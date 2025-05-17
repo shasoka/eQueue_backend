@@ -1,3 +1,5 @@
+from typing import Optional
+
 from sqlalchemy import Select, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -101,7 +103,7 @@ async def get_submission_by_user_id_and_task_id(
     session: AsyncSession,
     user_id: int,
     task_id: int,
-) -> Submission | None:
+) -> Optional[Submission]:
     stmt: Select = select(Submission).where(
         Submission.user_id == user_id,
         Submission.task_id == task_id,

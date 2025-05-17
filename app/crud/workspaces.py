@@ -1,4 +1,4 @@
-from typing import List
+from typing import Optional
 
 from sqlalchemy import select, Select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -64,7 +64,7 @@ async def check_complex_unique_group_id_name(
 
 
 async def check_user_group_id_matches_with_workspace_group_id(
-    user_group_id: int | None,
+    user_group_id: Optional[int],
     workspace_group_id: int,
 ) -> bool:
     if isinstance(user_group_id, int) and user_group_id == workspace_group_id:
@@ -82,7 +82,7 @@ async def create_workspace(
     session: AsyncSession,
     workspace_in: WorkspaceCreate,
     current_user: User,
-) -> WorkspaceRead | None:
+) -> Optional[WorkspaceRead]:
     # Распаковка pydantic-модели в SQLAlchemy-модель
     workspace: Workspace = Workspace(**workspace_in.model_dump())
 
@@ -153,7 +153,7 @@ async def get_workspace_by_id(
     session: AsyncSession,
     workspace_id: int,
     constraint_check: bool = True,
-) -> WorkspaceRead | None:
+) -> Optional[WorkspaceRead]:
     if workspace := await session.get(Workspace, workspace_id):
         # Во избежание циклического импорта
         from .workspace_members import (
@@ -228,7 +228,7 @@ async def update_workspace(
     session: AsyncSession,
     workspace_upd: WorkspaceUpdate,
     workspace_id: int,
-) -> WorkspaceRead | None:
+) -> Optional[WorkspaceRead]:
     # Работаем с orm- и pydantic-моделями из-за динамического поля semester
 
     # Исключение не заданных явно атрибутов
@@ -278,7 +278,7 @@ async def delete_workspace(
     session: AsyncSession,
     user_id: int,
     workspace_id: int,
-) -> WorkspaceRead | None:
+) -> Optional[WorkspaceRead]:
     # Получение рабочего пространства включает проверку на его существование
     workspace_pydantic_model: WorkspaceRead = await get_workspace_by_id(
         session,

@@ -1,4 +1,5 @@
 from datetime import datetime
+from typing import Optional
 
 from sqlalchemy import Select, select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -155,7 +156,7 @@ async def get_task_by_id(
     constraint_check: bool = True,
     check_membership: bool = False,
     user_id: int = None,
-) -> Task | None:
+) -> Optional[Task]:
     if task := await session.get(Task, task_id):
         if check_membership:
             # noinspection PyTypeChecker
@@ -173,7 +174,7 @@ async def get_task_by_id(
 
 async def get_task_by_subject_id_and_name(
     session: AsyncSession, subject_id: int, name: str
-) -> Task | None:
+) -> Optional[Task]:
     stmt: Select = select(Task).where(
         Task.subject_id == subject_id,
         Task.name == name,
@@ -214,7 +215,7 @@ async def get_tasks_by_subject_id(
     session: AsyncSession,
     subject_id: int,
     # При получении лидерборда не требуется проверка членства
-    current_user: User | None = None,
+    current_user: Optional[User] = None,
 ) -> list[Task]:
     # Получение предмета и проверка его существования
     subject: Subject = await get_subject_by_id(
@@ -269,7 +270,7 @@ async def get_tasks_by_subject_id_with_submissions(
     for task in tasks:
         # Проверяем наличие хотя бы одной submission от текущего пользователя
         submitted: bool = False
-        submitted_at: datetime | None = None
+        submitted_at: Optional[datetime] = None
         for sub in task.submissions:
             if sub.user_id == current_user.id:
                 submitted = True

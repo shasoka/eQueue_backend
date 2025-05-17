@@ -1,6 +1,6 @@
 from datetime import datetime
 
-from typing import Literal
+from typing import Literal, Optional
 
 from sqlalchemy import func, Select, select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -138,7 +138,7 @@ async def get_workspace_member_by_user_id_and_workspace_id(
     user_id: int,
     workspace_id: int,
     constraint_check: bool = True,
-) -> WorkspaceMember | None:
+) -> Optional[WorkspaceMember]:
     if workspace_member := (
         await session.scalars(
             select(WorkspaceMember).where(
@@ -160,7 +160,7 @@ async def get_workspace_member_by_user_id_and_workspace_id(
 async def get_workspace_member_by_id(
     session: AsyncSession,
     workspace_member_id: int,
-) -> WorkspaceMember | None:
+) -> Optional[WorkspaceMember]:
     if workspace_member := await session.get(
         WorkspaceMember,
         workspace_member_id,
@@ -192,7 +192,7 @@ async def get_workspace_members_by_user_id(
 async def get_workspace_members_by_workspace_id_and_status(
     session: AsyncSession,
     workspace_id: int,
-    user_id: int | None = None,
+    user_id: Optional[int] = None,
     status: Literal["approved", "pending", "rejected", "*"] = "approved",
 ) -> list[WorkspaceMember]:
 
@@ -251,7 +251,7 @@ async def get_workspace_members_leaderboard_by_subject_submissions_count(
     session: AsyncSession,
     workspace_id: int,
     user_id: int,
-    subject_id: int | None = None,
+    subject_id: Optional[int] = None,
 ) -> list[WorkspaceMemberLeaderboardEntry]:
     # Проверка того, что пользователь, запрашивающий лидерборд, является
     # членом данного рабочего пространства

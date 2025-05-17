@@ -1,4 +1,4 @@
-from typing import Annotated
+from typing import Annotated, Optional
 
 from fastapi import APIRouter, Depends
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -97,7 +97,7 @@ async def get_task_by_id(
     id: int,
     current_user: Annotated[User, Depends(get_current_user)],
     session: Annotated[AsyncSession, Depends(db_helper.session_getter)],
-) -> Task | None:
+) -> Optional[Task]:
     return await _get_task_by_id(
         session=session,
         task_id=id,

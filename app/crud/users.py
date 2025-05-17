@@ -1,3 +1,5 @@
+from typing import Optional
+
 from sqlalchemy import select, Select
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -75,7 +77,7 @@ async def check_unique_access_token(
 async def create_user(
     session: AsyncSession,
     user_in: UserCreate,
-) -> User | None:
+) -> Optional[User]:
     """
     Функция создания новой сущностти пользователя. Вызывается при первом входе пользователя в систему.
     """
@@ -110,7 +112,7 @@ async def get_user_by_id(
     session: AsyncSession,
     id: int,
     constraint_check: bool = True,
-) -> User | None:
+) -> Optional[User]:
     if user := await session.get(User, id):
         return user
     elif constraint_check:
@@ -125,7 +127,7 @@ async def get_user_by_id(
 
 async def get_user_by_ecourses_id(
     session: AsyncSession, ecourses_id: int, on_login: bool = False
-) -> User | None:
+) -> Optional[User]:
     """
     Функция, получающая пользователя по значению столбца ecourses_id.
 
@@ -152,7 +154,7 @@ async def get_user_by_access_token(
     session: AsyncSession,
     access_token: str,
     on_login: bool = False,
-) -> User | None:
+) -> Optional[User]:
     stmt: Select = select(User).where(User.access_token == access_token)
     if user := (await session.scalars(stmt)).one_or_none():
         return user
@@ -171,7 +173,7 @@ async def update_user(
     session: AsyncSession,
     user: User,
     user_upd: UserUpdate,
-) -> User | None:
+) -> Optional[User]:
     # Исключение не заданных явно атрибутов
     user_upd: dict = user_upd.model_dump(exclude_unset=True)
 

@@ -71,7 +71,7 @@ async def get_workspace_leaderboard_by_subject(
     wid: int,
     current_user: Annotated[User, Depends(get_current_user)],
     session: Annotated[AsyncSession, Depends(db_helper.session_getter)],
-    sid: int | None = None,
+    sid: Optional[int] = None,
 ) -> list[WorkspaceMemberLeaderboardEntry]:
     return (
         await get_workspace_members_leaderboard_by_subject_submissions_count(

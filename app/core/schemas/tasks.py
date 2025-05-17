@@ -24,7 +24,7 @@ class TaskRead(TaskBase):
 
 class TaskReadWithSubmission(TaskRead):
     submitted: bool
-    submitted_at: datetime | None
+    submitted_at: Optional[datetime]
 
 
 class TaskUpdate(BaseModel):

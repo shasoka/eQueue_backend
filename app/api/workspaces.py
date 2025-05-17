@@ -1,4 +1,4 @@
-from typing import Annotated
+from typing import Annotated, Optional
 
 from fastapi import (
     APIRouter,
@@ -89,7 +89,7 @@ async def delete_workspace(
     id: int,
     current_user: Annotated[User, Depends(get_current_user)],
     session: Annotated[AsyncSession, Depends(db_helper.session_getter)],
-) -> WorkspaceRead | None:
+) -> Optional[WorkspaceRead]:
     return await _delete_workspace(
         session=session,
         user_id=current_user.id,

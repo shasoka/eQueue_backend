@@ -22,7 +22,7 @@ class AccessTokenMixin(BaseModel):
 
 class UserBase(BaseModel):
     ecourses_id: int
-    group_id: int | None = None
+    group_id: Optional[int] = None
     first_name: str255
     second_name: str255
 
@@ -44,7 +44,7 @@ class UserRead(UserBase):
 
 class UserUpdate(BaseModel):
     access_token: Optional[str255] = None
-    group_id: int | None = None
+    group_id: Optional[int] = None
     profile_status: Optional[str255] = None
     profile_pic_url: Optional[str255] = None
 

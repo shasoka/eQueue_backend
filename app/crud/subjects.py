@@ -1,3 +1,5 @@
+from typing import Optional
+
 from sqlalchemy import select, Select
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -142,7 +144,7 @@ async def get_subject_by_id(
     constraint_check: bool = True,
     check_membership: bool = False,
     user_id: int = None,
-) -> Subject | None:
+) -> Optional[Subject]:
     if subject := await session.get(Subject, subject_id):
         if check_membership:
             # noinspection PyTypeChecker
@@ -162,7 +164,7 @@ async def get_subject_by_workspace_id_and_ecourses_id(
     session: AsyncSession,
     workspace_id: int,
     ecourses_id: int,
-) -> Subject | None:
+) -> Optional[Subject]:
     stmt: Select = select(Subject).where(
         Subject.workspace_id == workspace_id,
         Subject.ecourses_id == ecourses_id,
@@ -175,7 +177,7 @@ async def get_subject_by_workspace_id_and_name(
     session: AsyncSession,
     workspace_id: int,
     name: str,
-) -> Subject | None:
+) -> Optional[Subject]:
     stmt: Select = select(Subject).where(
         Subject.workspace_id == workspace_id,
         Subject.name == name,

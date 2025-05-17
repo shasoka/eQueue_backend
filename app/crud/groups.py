@@ -1,3 +1,5 @@
+from typing import Optional
+
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -31,7 +33,7 @@ async def get_group_by_id(
     session: AsyncSession,
     group_id: int,
     constraint_check: bool = True,
-) -> Group | None:
+) -> Optional[Group]:
     if group := await session.get(Group, group_id):
         return group
     elif constraint_check:

@@ -1,4 +1,4 @@
-from typing import Annotated
+from typing import Annotated, Optional
 
 from fastapi import Depends
 from fastapi.security import OAuth2PasswordBearer
@@ -16,7 +16,7 @@ class MoodleOAuth2(OAuth2PasswordBearer):
     @staticmethod
     async def validate_access_token(
         access_token: str, session: AsyncSession
-    ) -> User | None:
+    ) -> Optional[User]:
         if user := await get_user_by_access_token(
             session=session,
             access_token=access_token,
