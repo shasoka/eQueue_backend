@@ -20,7 +20,6 @@ from crud.workspaces import (
     update_workspace,
     get_workspaces_which_user_is_member_of as _get_workspaces_which_user_is_member_of,
 )
-
 from moodle.auth import get_current_user
 
 

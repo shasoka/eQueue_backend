@@ -1,21 +1,19 @@
 from typing import Annotated
 
-from fastapi import APIRouter, Depends
-from sqlalchemy.ext.asyncio import AsyncSession
-
 from core.config import settings
-from core.models import db_helper, User
-from core.models import Subject
+from core.models import db_helper, Subject, User
 from core.schemas.subjects import SubjectCreate, SubjectRead, SubjectUpdate
 from crud.subjects import (
-    get_subjects_by_workspace_id as _get_subjects_by_workspace_id,
     create_subjects as _create_subjects,
-    update_subject,
-    get_subject_by_id as _get_subject_by_id,
     delete_subject as _delete_subject,
+    get_subject_by_id as _get_subject_by_id,
+    get_subjects_by_workspace_id as _get_subjects_by_workspace_id,
+    update_subject,
 )
+from fastapi import APIRouter, Depends
 from moodle.auth import get_current_user
 from moodle.subjects.requests import get_user_enrolled_courses
+from sqlalchemy.ext.asyncio import AsyncSession
 
 __all__ = ("router",)
 

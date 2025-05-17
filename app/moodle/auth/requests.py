@@ -1,13 +1,12 @@
-import httpx
 from urllib.parse import quote_plus as url_encode
 
+import httpx
 from httpx import Response
 
 from core.config import settings
-from core.schemas.users import UserLogin, UserInfoFromEcourses
-from moodle import validate_ecourses_response
-
 from core.middlewares.logs import logger
+from core.schemas.users import UserInfoFromEcourses, UserLogin
+from moodle import validate_ecourses_response
 
 
 async def auth_by_moodle_credentials(credentials: UserLogin) -> str:

@@ -1,5 +1,4 @@
 import httpx
-from urllib.parse import quote_plus as url_encode
 
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -7,6 +6,8 @@ from core.config import settings
 from core.models import Task, User
 from core.schemas.tasks import TaskCreate
 from moodle import validate_ecourses_response
+
+from urllib.parse import quote_plus as url_encode
 
 
 async def _has_duplicate(

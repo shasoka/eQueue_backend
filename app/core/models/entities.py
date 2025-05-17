@@ -4,9 +4,9 @@ from sqlalchemy import (
     ForeignKey,
     String,
     Text,
+    text,
     TIMESTAMP,
     func,
-    text,
 )
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from sqlalchemy.schema import UniqueConstraint

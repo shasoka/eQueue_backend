@@ -3,7 +3,7 @@ from typing import Annotated
 from fastapi import APIRouter, Depends
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from core.models import db_helper, Submission, User
+from core.models import Submission, User, db_helper
 from core.schemas.submissions import SubmissionRead
 from crud.submissions import (
     create_submission as _create_submission,

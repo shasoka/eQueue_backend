@@ -1,16 +1,15 @@
-from .db_setup import db_helper
 from .base import Base
+from .db_setup import db_helper
 from .entities import (
-    User,
     Group,
-    Workspace,
-    WorkspaceMember,
-    Submission,
-    Subject,
     Queue,
     QueueMember,
-    Task,
+    Subject,
     Submission,
+    Task,
+    User,
+    Workspace,
+    WorkspaceMember,
 )
 
 

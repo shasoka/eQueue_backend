@@ -1,15 +1,14 @@
-from typing import Annotated
-
 from fastapi import APIRouter, Depends
 from sqlalchemy.ext.asyncio import AsyncSession
+from typing import Annotated
 
 from core.models import db_helper, Queue, User
 from core.schemas.queues import QueueCreate, QueueRead, QueueUpdate
 from crud.queues import (
     create_queue as _create_queue,
-    update_queue,
-    get_queue_by_subject_id as _get_queue_by_subject_id,
     delete_queue,
+    get_queue_by_subject_id as _get_queue_by_subject_id,
+    update_queue,
 )
 from moodle.auth import get_current_user
 

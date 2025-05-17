@@ -1,8 +1,5 @@
 from typing import Annotated
 
-from fastapi import APIRouter, Depends
-from sqlalchemy.ext.asyncio import AsyncSession
-
 from core.config import settings
 from core.models import db_helper, QueueMember, User
 from core.schemas.queue_members import QueueMemberRead
@@ -11,7 +8,9 @@ from crud.queue_members import (
     leave_queue_by_user_id_and_queue_id,
     switch_queue_member_status_by_user_id_and_queue_id,
 )
+from fastapi import APIRouter, Depends
 from moodle.auth import get_current_user
+from sqlalchemy.ext.asyncio import AsyncSession
 
 router = APIRouter()
 

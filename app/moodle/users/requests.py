@@ -1,10 +1,11 @@
 import httpx
-from urllib.parse import quote_plus as url_encode
 from httpx import Response
 
 from core.config import settings
-from moodle import validate_ecourses_response
 from core.middlewares.logs import logger
+from moodle import validate_ecourses_response
+
+from urllib.parse import quote_plus as url_encode
 
 
 async def upload_new_profile_avatar(

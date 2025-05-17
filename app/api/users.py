@@ -1,5 +1,7 @@
 """Модуль, реализующий эндпоинты для работы с сущностью User."""
 
+from typing import Annotated, Optional
+
 from fastapi import (
     APIRouter,
     Depends,
@@ -10,7 +12,6 @@ from fastapi import (
 from fastapi.responses import ORJSONResponse
 from fastapi.security import OAuth2PasswordRequestForm
 from sqlalchemy.ext.asyncio import AsyncSession
-from typing import Annotated, Optional
 
 from core.config import settings
 from core.models import db_helper, User

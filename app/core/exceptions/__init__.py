@@ -1,20 +1,21 @@
-from .orm_exceptions import (
-    ForeignKeyViolationException,
-    UniqueConstraintViolationException,
-    NoEntityFoundException,
-)
-from .moodle_exceptions import (
-    UnclassifiedMoodleException,
-    AccessTokenException,
-)
 from .business_logic_exceptions import (
+    AdminSuicideException,
     GroupIDMismatchException,
     SubmissionForbiddenException,
-    UserIsNotWorkspaceAdminException,
-    AdminSuicideException,
     SubjectIsOutOfWorkspaceException,
+    UserIsNotWorkspaceAdminException,
+)
+from .moodle_exceptions import (
+    AccessTokenException,
+    UnclassifiedMoodleException,
+)
+from .orm_exceptions import (
+    ForeignKeyViolationException,
+    NoEntityFoundException,
+    UniqueConstraintViolationException,
 )
 from .websocket_exceptions import UnexpectedWebsocketException
+
 from .register_exceptions_handlers import register_exceptions_handlers
 
 
@@ -30,4 +31,5 @@ __all__ = (
     "AccessTokenException",
     "SubmissionForbiddenException",
     "SubjectIsOutOfWorkspaceException",
+    "UnexpectedWebsocketException",
 )

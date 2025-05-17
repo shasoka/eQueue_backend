@@ -2,13 +2,6 @@ import json
 from typing import Annotated
 
 from fastapi import APIRouter, Depends, Query, WebSocket
-
-
-__all__ = (
-    "router",
-    "manager",
-)
-
 from sqlalchemy.ext.asyncio import AsyncSession
 from starlette.websockets import WebSocketDisconnect
 
@@ -21,6 +14,11 @@ from crud.queues import (
 )
 from crud.tasks import check_if_user_is_permitted_to_get_tasks
 from moodle.auth.oauth2 import MoodleOAuth2
+
+__all__ = (
+    "router",
+    "manager",
+)
 
 
 class ConnectionManager:

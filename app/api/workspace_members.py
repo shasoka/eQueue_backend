@@ -1,13 +1,10 @@
 from typing import Annotated, Literal, Optional
 
 from fastapi import APIRouter, Depends
-
-__all__ = ("router",)
-
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from core.config import settings
-from core.models import db_helper, User, WorkspaceMember
+from core.models import User, WorkspaceMember, db_helper
 from core.schemas.workspace_members import (
     WorkspaceMemberCreate,
     WorkspaceMemberLeaderboardEntry,
@@ -15,15 +12,16 @@ from core.schemas.workspace_members import (
     WorkspaceMemberUpdate,
 )
 from moodle.auth import get_current_user
-
 from crud.workspace_members import (
+    create_workspace_member as _create_workspace_member,
+    delete_workspace_member as _delete_workspace_member,
     get_workspace_member_by_id as _get_workspace_member_by_id,
     get_workspace_members_by_workspace_id_and_status as _get_workspace_members_by_workspace_id_and_status,
-    create_workspace_member as _create_workspace_member,
     get_workspace_members_leaderboard_by_subject_submissions_count,
     update_workspace_member,
-    delete_workspace_member as _delete_workspace_member,
 )
+
+__all__ = ("router",)
 
 router = APIRouter()
 

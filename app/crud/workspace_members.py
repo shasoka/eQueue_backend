@@ -1,5 +1,4 @@
 from datetime import datetime
-
 from typing import Literal, Optional
 
 from sqlalchemy import func, Select, select

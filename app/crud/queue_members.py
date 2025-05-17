@@ -1,14 +1,13 @@
-from typing import Optional
-
 from sqlalchemy import Select, select
 from sqlalchemy.ext.asyncio import AsyncSession
+from typing import Optional
 
 from api.queue_websocket import manager
 from core.exceptions import (
     NoEntityFoundException,
     UniqueConstraintViolationException,
 )
-from core.models import Queue, QueueMember, Submission, Task
+from core.models import Queue, QueueMember, Task
 from crud.queues import check_foreign_key_queue_id, get_queue_by_id
 from crud.submissions import (
     create_submission,

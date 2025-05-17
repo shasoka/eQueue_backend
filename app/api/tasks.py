@@ -13,13 +13,13 @@ from core.schemas.tasks import (
 )
 
 from crud.tasks import (
-    get_tasks_from_ecourses,
-    get_tasks_by_subject_id as _get_tasks_by_subject_id,
-    get_task_by_id as _get_task_by_id,
     create_tasks as _create_tasks,
-    update_task,
     delete_task as _delete_task,
+    get_task_by_id as _get_task_by_id,
+    get_tasks_by_subject_id as _get_tasks_by_subject_id,
     get_tasks_by_subject_id_with_submissions as _get_tasks_by_subject_id_with_submissions,
+    get_tasks_from_ecourses,
+    update_task,
 )
 
 from moodle.auth import get_current_user

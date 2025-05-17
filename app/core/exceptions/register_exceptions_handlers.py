@@ -2,17 +2,17 @@ from fastapi import FastAPI, Request, status
 from fastapi.responses import ORJSONResponse
 
 from core.exceptions import (
-    SubjectIsOutOfWorkspaceException,
-    SubmissionForbiddenException,
-    UnclassifiedMoodleException,
+    AccessTokenException,
     AdminSuicideException,
-    NoEntityFoundException,
-    UniqueConstraintViolationException,
     ForeignKeyViolationException,
     GroupIDMismatchException,
-    UserIsNotWorkspaceAdminException,
-    AccessTokenException,
+    NoEntityFoundException,
+    SubmissionForbiddenException,
+    SubjectIsOutOfWorkspaceException,
+    UnclassifiedMoodleException,
     UnexpectedWebsocketException,
+    UniqueConstraintViolationException,
+    UserIsNotWorkspaceAdminException,
 )
 
 

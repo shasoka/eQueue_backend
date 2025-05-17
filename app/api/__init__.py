@@ -1,16 +1,16 @@
 from fastapi import APIRouter
 
 from core.config import settings
-from .users import router as users_router
 from .groups import router as groups_router
-from .workspaces import router as workspaces_router
-from .workspace_members import router as workspace_members_router
-from .subjects import router as subjects_router
-from .tasks import router as tasks_router
-from .submissions import router as submissions_router
-from .queues import router as queues_router
 from .queue_members import router as queue_members_router
 from .queue_websocket import router as queue_websocket_router
+from .queues import router as queues_router
+from .subjects import router as subjects_router
+from .submissions import router as submissions_router
+from .tasks import router as tasks_router
+from .users import router as users_router
+from .workspaces import router as workspaces_router
+from .workspace_members import router as workspace_members_router
 
 __all__ = ("router",)
 

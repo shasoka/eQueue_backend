@@ -1,5 +1,3 @@
-from fastapi import HTTPException
-
 from core.exceptions import UnclassifiedMoodleException
 
 

@@ -1,6 +1,7 @@
-import orjson
 from pathlib import Path
 from typing import Any
+
+import orjson
 
 
 class ResponseDocs:
