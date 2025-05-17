@@ -6,9 +6,13 @@ from fastapi import FastAPI, Request, Response
 from starlette.responses import StreamingResponse
 
 from .logs import logger
+from .websocket import WebSocketMiddleware
 
 
 def register_middlewares(app: FastAPI) -> None:
+
+    # noinspection PyTypeChecker
+    app.add_middleware(WebSocketMiddleware)
 
     # noinspection PyUnusedLocal
     @app.middleware("http")

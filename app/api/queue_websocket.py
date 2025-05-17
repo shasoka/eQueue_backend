@@ -12,14 +12,18 @@ __all__ = (
 from sqlalchemy.ext.asyncio import AsyncSession
 from starlette.websockets import WebSocketDisconnect
 
-from core.config import settings
-from core.exceptions import UnexpectedBroadcastException
-from core.models import db_helper
+from core.models import db_helper, Queue
+from crud.queues import (
+    check_foreign_key_queue_id,
+    get_queue_by_id,
+    get_queue_for_ws_message,
+)
+from crud.tasks import check_if_user_is_permitted_to_get_tasks
 from moodle.auth.oauth2 import MoodleOAuth2
 
 
 class ConnectionManager:
-    def __init__(self):
+    def __init__(self) -> None:
         # Активные соединения - словарь, где ключ - queue_id, значение -
         # список соединений (пользователей, просматривающих очередь)
         self.active_connections: dict[int, list[WebSocket]] = {}
@@ -28,7 +32,7 @@ class ConnectionManager:
         self,
         websocket: WebSocket,
         queue_id: int,
-    ):
+    ) -> None:
         await websocket.accept()
         if queue_id not in self.active_connections:
             self.active_connections[queue_id] = []
@@ -38,16 +42,16 @@ class ConnectionManager:
         self,
         websocket: WebSocket,
         queue_id: int,
-    ):
+    ) -> None:
         self.active_connections[queue_id].remove(websocket)
         if not self.active_connections[queue_id]:
             del self.active_connections[queue_id]
 
     @staticmethod
     async def send_personal_message(
-        message: str | dict,
+        message: str | dict | list,
         websocket: WebSocket,
-    ):
+    ) -> None:
         await websocket.send_text(
             json.dumps(
                 message,
@@ -58,9 +62,9 @@ class ConnectionManager:
 
     async def broadcast(
         self,
-        message: str,
+        message: str | dict | list,
         queue_id: int,
-    ):
+    ) -> None:
         if queue_id in self.active_connections:
             for connection in self.active_connections[queue_id]:
                 await connection.send_text(
@@ -71,8 +75,26 @@ class ConnectionManager:
                     )
                 )
 
+    async def notify_subs_about_queue_update(
+        self,
+        session: AsyncSession,
+        queue_id: int,
+    ) -> None:
+        # Получение нового состояния очереди
+        updated_queue: list[dict] = await get_queue_for_ws_message(
+            session=session,
+            queue_id=queue_id,
+        )
+
+        # Отправка нового состояния всем активным подписчикам
+        await self.broadcast(
+            message=updated_queue,
+            queue_id=queue_id,
+        )
+
 
 manager = ConnectionManager()
+
 
 router = APIRouter()
 
@@ -87,11 +109,28 @@ async def websocket_endpoint(
     token: Annotated[str, Query(...)],
     session: Annotated[AsyncSession, Depends(db_helper.session_getter)],
 ) -> None:
-
     # Получение текущего пользователя для проверки авторизации
     current_user = await MoodleOAuth2.validate_access_token(
         access_token=token,
         session=session,
+    )
+
+    # Проверка существования внешнего ключа queue_id
+    await check_foreign_key_queue_id(
+        session=session,
+        queue_id=queue_id,
+    )
+
+    # Проверка является ли пользователь, подключающийся к очереди, членом
+    # рабочего пространства, в котором находится данная очередь
+    queue: Queue = await get_queue_by_id(
+        session=session,
+        queue_id=queue_id,
+    )
+    await check_if_user_is_permitted_to_get_tasks(
+        session=session,
+        subject_id=queue.subject_id,
+        user_id=current_user.id,  # type: ignore
     )
 
     # Подключение к вебсокету
@@ -103,7 +142,19 @@ async def websocket_endpoint(
     # Обмен сообщениями по websocket
     try:
         while True:
-            pass
+            # Получение сообщения
+            data = await websocket.receive_text()
+
+            # Обработка сообщения и возврат ответа
+            if data == "get_queue":
+                casted_queue: list[dict] = await get_queue_for_ws_message(
+                    session=session,
+                    queue_id=queue_id,
+                )
+                await manager.send_personal_message(
+                    message=casted_queue,
+                    websocket=websocket,
+                )
     except WebSocketDisconnect:
         manager.disconnect(
             websocket=websocket,
@@ -114,6 +165,4 @@ async def websocket_endpoint(
             websocket=websocket,
             queue_id=queue_id,
         )
-        raise UnexpectedBroadcastException(
-            f"Возникла проблема в работе websocket для очереди {queue_id}: {e}."
-        )
+        raise e

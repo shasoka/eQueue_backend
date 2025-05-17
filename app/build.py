@@ -1,12 +1,14 @@
 from contextlib import asynccontextmanager
 from typing import Any, AsyncGenerator
 
-from fastapi import FastAPI
+from fastapi import FastAPI, Request
 from fastapi.responses import ORJSONResponse
+from fastapi.templating import Jinja2Templates
 
 from api import router as api_router
 from core.exceptions import register_exceptions_handlers
 from core.middlewares import register_middlewares
+from core.middlewares.websocket.ws_middleware import WebSocketMiddleware
 from core.models import db_helper
 
 
@@ -38,5 +40,15 @@ def build_fastapi_app() -> FastAPI:
     register_exceptions_handlers(app)
 
     register_middlewares(app)
+
+    # Подключение шаблона для тестирования websocket
+    templates = Jinja2Templates(directory="templates")
+
+    @app.get("/", include_in_schema=False)
+    def get(request: Request):
+        return templates.TemplateResponse(
+            request=request,
+            name="ws_test_client.html",
+        )
 
     return app

@@ -3,6 +3,7 @@ from typing import Optional
 from sqlalchemy import Select, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from api.queue_websocket import manager
 from core.exceptions import UniqueConstraintViolationException
 from core.models import Queue, QueueMember
 from crud.queues import check_foreign_key_queue_id, get_queue_by_id
@@ -94,6 +95,12 @@ async def create_queue_member(
     session.add(queue_member)
     await session.commit()
     await session.refresh(queue_member)
+
+    # Оповещение подписчиков о новом состоянии очереди
+    await manager.notify_subs_about_queue_update(
+        session=session,
+        queue_id=queue_id,
+    )
 
     return queue_member
 

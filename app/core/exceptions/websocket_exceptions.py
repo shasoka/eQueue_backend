@@ -1,2 +1,0 @@
-class UnexpectedBroadcastException(Exception):
-    pass

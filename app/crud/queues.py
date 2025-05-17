@@ -2,13 +2,14 @@ from typing import Optional
 
 from sqlalchemy import Select, select
 from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.orm import selectinload
 
 from core.exceptions import (
     ForeignKeyViolationException,
     NoEntityFoundException,
     UniqueConstraintViolationException,
 )
-from core.models import Queue
+from core.models import Queue, QueueMember
 from core.schemas.queues import QueueCreate, QueueUpdate
 from crud.subjects import check_foreign_key_subject_id
 from crud.tasks import (
@@ -96,6 +97,45 @@ async def get_queue_by_id(
     queue_id: int,
 ) -> Optional[Queue]:
     return await session.get(Queue, queue_id)
+
+
+async def get_queue_for_ws_message(
+    session: AsyncSession,
+    queue_id: int,
+) -> list[dict]:
+    # Получение очереди с ее членами
+    stmt: Select = (
+        select(Queue)
+        .where(Queue.id == queue_id)
+        .options(selectinload(Queue.members).selectinload(QueueMember.user))
+    )
+    # Вернется гарантированно Queue, т.к. проверка существования такой очереди
+    # происходит до вызова данной функции
+    queue_with_members: Optional[Queue] = (
+        await session.scalars(stmt)
+    ).one_or_none()
+
+    # Составление словаря с членами очереди для отправки по websocket
+    result_set: list[dict] = []
+    # noinspection PyTypeChecker
+    sorted_members = sorted(
+        queue_with_members.members, key=lambda memb: memb.position
+    )
+    for member in sorted_members:
+        result_set.append(
+            {
+                "user_id": member.user_id,
+                "queue_id": member.queue_id,
+                "position": member.position,
+                "status": member.status,
+                "entered_at": member.entered_at,
+                "first_name": member.user.first_name,
+                "second_name": member.user.second_name,
+                "profile_pic_url": member.user.profile_pic_url,
+            }
+        )
+
+    return result_set
 
 
 async def get_queue_by_subject_id(

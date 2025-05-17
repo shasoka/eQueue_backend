@@ -15,7 +15,6 @@ from .business_logic_exceptions import (
     SubjectIsOutOfWorkspaceException,
 )
 from .register_exceptions_handlers import register_exceptions_handlers
-from .websocket_exceptions import UnexpectedBroadcastException
 
 
 __all__ = (
@@ -30,5 +29,4 @@ __all__ = (
     "AccessTokenException",
     "SubmissionForbiddenException",
     "SubjectIsOutOfWorkspaceException",
-    "UnexpectedBroadcastException",
 )

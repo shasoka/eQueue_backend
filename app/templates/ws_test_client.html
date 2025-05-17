@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>Тестирование Очереди</title>
+    <style>
+        body {
+	        font-family: Arial, sans-serif;
+	        background-color: #f4f4f4;
+	        margin: 0;
+	        padding: 0;
+	        display: flex;
+	        justify-content: center;
+	        align-items: center;
+	        height: 100vh;
+        }
+
+        .container {
+	        background-color: #fff;
+	        padding: 20px;
+	        border-radius: 8px;
+	        box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+	        width: 400px;
+        }
+
+        .form-group {
+	        margin-bottom: 15px;
+        }
+
+        label {
+	        display: block;
+	        margin-bottom: 5px;
+	        color: #555;
+        }
+
+        input[type="text"],
+        input[type="password"] {
+	        width: calc(100% - 22px);
+	        padding: 10px;
+	        border: 1px solid #ddd;
+	        border-radius: 4px;
+	        box-sizing: border-box;
+        }
+
+        button {
+	        width: 100%;
+	        padding: 10px;
+	        background-color: #007BFF;
+	        border: none;
+	        color: #fff;
+	        border-radius: 4px;
+	        cursor: pointer;
+	        font-size: 16px;
+	        margin-top: 10px;
+        }
+
+        button:hover {
+	        background-color: #0056b3;
+        }
+
+        #queue {
+	        margin-top: 20px;
+        }
+
+        .user {
+	        padding: 10px;
+	        border-bottom: 1px solid #ddd;
+        }
+    </style>
+    <script>
+        const apiUrl = 'http://127.0.0.1:8000/api';
+        const wsUrl = 'ws://127.0.0.1:8000/api/ws/queue';
+
+        let websocket;
+
+        async function login(event) {
+            event.preventDefault();
+            const formData = new FormData(document.getElementById('login-form'));
+            const response = await fetch(`${apiUrl}/users/moodle_auth`, {
+                method: 'POST',
+                body: formData
+            });
+
+            if (response.ok) {
+                const data = await response.json();
+                const token = data.access_token;
+                localStorage.setItem('token', token);
+                alert('Вход выполнен');
+                const queueId = prompt("Введите ID очереди:");
+                if (queueId) {
+                    connectWebSocket(queueId, token);
+                }
+            } else {
+                alert('Ошибка входа');
+            }
+        }
+
+        function connectWebSocket(subjectId, token) {
+            websocket = new WebSocket(`${wsUrl}/${subjectId}?token=${token}`);
+            websocket.onopen = () => {
+                console.log('WebSocket открыт');
+                websocket.send('get_queue');
+            };
+            websocket.onmessage = (event) => {
+                console.log('WebSocket получено:', event.data);
+                try {
+                    const data = JSON.parse(event.data);
+                    console.log('Парсинг успешен:', data);
+                    updateQueue(data);
+                } catch (error) {
+                    console.error('Ошибка парсинга JSON:', error);
+                }
+            };
+            websocket.onclose = () => {
+                console.log('WebSocket закрыт');
+            };
+            websocket.onerror = (error) => {
+                console.error('WebSocket ошибка:', error);
+            };
+        }
+
+        function updateQueue(queue) {
+            console.log('Обновление очереди:', queue);
+            const queueElement = document.getElementById('queue');
+            queueElement.innerHTML = '';
+            if (Array.isArray(queue)) {
+                queue.forEach(user => {
+                    const userElement = document.createElement('div');
+                    userElement.className = 'user';
+                    userElement.textContent = `${user.position}. ID=${user.user_id}: ${user.first_name} ${user.second_name}`;
+                    queueElement.appendChild(userElement);
+                });
+            } else {
+                console.error('Полученные данные не являются массивом:', queue);
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', function() {
+            if (localStorage.getItem('token')) {
+                const subjectId = prompt("Введите ID предмета:");
+                if (subjectId) {
+                    connectWebSocket(subjectId, localStorage.getItem('token'));
+                }
+            }
+        });
+    </script>
+</head>
+<body>
+    <div class="container">
+        <form id="login-form" onsubmit="login(event)">
+            <div class="form-group">
+                <label for="username">Логин:</label>
+                <input type="text" id="username" name="username" required>
+            </div>
+            <div class="form-group">
+                <label for="password">Пароль:</label>
+                <input type="password" id="password" name="password" required>
+            </div>
+            <button type="submit">Войти</button>
+        </form>
+        <div style="margin-top: 20px;">
+            <button onclick="enterQueue()">Вписаться в очередь</button>
+            <button onclick="leaveQueue()">Выписаться из очереди</button>
+            <button onclick="leaveQueueAndMark()">Выписаться и пометить</button>
+        </div>
+        <h2>Очередь:</h2>
+        <div id="queue"></div>
+    </div>
+</body>
+</html>
