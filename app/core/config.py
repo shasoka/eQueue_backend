@@ -84,6 +84,10 @@ class ApiQueueMembers(BaseModel):
     prefix: str = "/queue_members"
     tags: list[str] = ["Queue Members"]
 
+    # --- Endpoints ---
+
+    leave_and_mark: str = "/leave_and_mark"
+
 
 class ApiWebsocket(BaseModel):
     prefix: str = "/ws/queue"
