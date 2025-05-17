@@ -8,7 +8,6 @@ from fastapi.templating import Jinja2Templates
 from api import router as api_router
 from core.exceptions import register_exceptions_handlers
 from core.middlewares import register_middlewares
-from core.middlewares.websocket.ws_middleware import WebSocketMiddleware
 from core.models import db_helper
 
 

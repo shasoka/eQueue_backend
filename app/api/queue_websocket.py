@@ -12,6 +12,7 @@ __all__ = (
 from sqlalchemy.ext.asyncio import AsyncSession
 from starlette.websockets import WebSocketDisconnect
 
+from core.exceptions import UnexpectedWebsocketException
 from core.models import db_helper, Queue
 from crud.queues import (
     check_foreign_key_queue_id,
@@ -165,4 +166,6 @@ async def websocket_endpoint(
             websocket=websocket,
             queue_id=queue_id,
         )
-        raise e
+        raise UnexpectedWebsocketException(
+            f"Произошла ошибка вебсокета с queue_id={queue_id}: {e}"
+        )

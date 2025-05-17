@@ -12,6 +12,7 @@ from core.exceptions import (
     GroupIDMismatchException,
     UserIsNotWorkspaceAdminException,
     AccessTokenException,
+    UnexpectedWebsocketException,
 )
 
 
@@ -142,6 +143,20 @@ def register_exceptions_handlers(app: FastAPI) -> None:
             status_code=status.HTTP_403_FORBIDDEN,
             content={
                 "message": "Нарушено ограничение бизнес-логики",
+                "error": str(exc),
+            },
+        )
+
+    # noinspection PyUnusedLocal
+    @app.exception_handler(UnexpectedWebsocketException)
+    async def handle_unexpected_websocket_exception(
+        request: Request,
+        exc: UnexpectedWebsocketException,
+    ) -> ORJSONResponse:
+        return ORJSONResponse(
+            status_code=status.HTTP_403_FORBIDDEN,
+            content={
+                "message": "Неожиданная ошибка в websocket",
                 "error": str(exc),
             },
         )

@@ -14,6 +14,7 @@ from .business_logic_exceptions import (
     AdminSuicideException,
     SubjectIsOutOfWorkspaceException,
 )
+from .websocket_exceptions import UnexpectedWebsocketException
 from .register_exceptions_handlers import register_exceptions_handlers
 
 
