@@ -4,6 +4,7 @@ from sqlalchemy import Select, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from core.exceptions import (
+    ForeignKeyViolationException,
     NoEntityFoundException,
     UniqueConstraintViolationException,
 )
@@ -14,7 +15,20 @@ from crud.tasks import (
     check_if_user_is_permitted_to_get_tasks,
     check_if_user_is_permitted_to_modify_tasks,
 )
-from crud.workspace_members import check_if_user_is_workspace_member
+
+
+# --- Проверка ограничений внешнего ключа ---
+
+
+async def check_foreign_key_queue_id(
+    session: AsyncSession,
+    queue_id: int,
+) -> None:
+    if not await get_queue_by_id(session, queue_id):
+        raise ForeignKeyViolationException(
+            f"Нарушено ограничение внешнего ключа queue_id: "
+            f"значение {queue_id} не существует в столбце id таблицы queues."
+        )
 
 
 # --- Ограничения уникальности ---
@@ -75,6 +89,13 @@ async def create_queue(
 
 
 # --- Read ---
+
+
+async def get_queue_by_id(
+    session: AsyncSession,
+    queue_id: int,
+) -> Optional[Queue]:
+    return await session.get(Queue, queue_id)
 
 
 async def get_queue_by_subject_id(

@@ -11,10 +11,6 @@ class QueueMemberBase(BaseModel):
     status: Literal["active", "frozen"]
 
 
-class QueueMemberCreate(QueueMemberBase):
-    status: Literal["active", "frozen"] = "active"
-
-
 class QueueMemberRead(QueueMemberBase):
     id: int
     entered_at: datetime

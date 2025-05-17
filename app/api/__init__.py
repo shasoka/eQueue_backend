@@ -9,6 +9,7 @@ from .subjects import router as subjects_router
 from .tasks import router as tasks_router
 from .submissions import router as submissions_router
 from .queues import router as queues_router
+from .queue_members import router as queue_members_router
 
 __all__ = ("router",)
 
@@ -61,4 +62,10 @@ router.include_router(
     router=queues_router,
     prefix=settings.api.queues.prefix,
     tags=settings.api.queues.tags,
+)
+
+router.include_router(
+    router=queue_members_router,
+    prefix=settings.api.queue_members.prefix,
+    tags=settings.api.queue_members.tags,
 )

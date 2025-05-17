@@ -80,6 +80,11 @@ class ApiQueues(BaseModel):
     tags: list[str] = ["Queues"]
 
 
+class ApiQueueMembers(BaseModel):
+    prefix: str = "/queue_members"
+    tags: list[str] = ["Queue Members"]
+
+
 class ApiBase(BaseModel):
     prefix: str = "/api"
     tags: list[str] = ["eQueue Api"]
@@ -98,6 +103,7 @@ class ApiBase(BaseModel):
     tasks: ApiTasks = ApiTasks()
     submissions: ApiSubmissions = ApiSubmissions()
     queues: ApiQueues = ApiQueues()
+    queue_members: ApiQueueMembers = ApiQueueMembers()
 
 
 class MoodleAPI(BaseModel):
