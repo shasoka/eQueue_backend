@@ -85,6 +85,10 @@ class ApiQueueMembers(BaseModel):
     tags: list[str] = ["Queue Members"]
 
 
+class ApiWebsocket(BaseModel):
+    prefix: str = "/ws/queue"
+
+
 class ApiBase(BaseModel):
     prefix: str = "/api"
     tags: list[str] = ["eQueue Api"]
@@ -104,6 +108,7 @@ class ApiBase(BaseModel):
     submissions: ApiSubmissions = ApiSubmissions()
     queues: ApiQueues = ApiQueues()
     queue_members: ApiQueueMembers = ApiQueueMembers()
+    queue_websocket: ApiWebsocket = ApiWebsocket()
 
 
 class MoodleAPI(BaseModel):

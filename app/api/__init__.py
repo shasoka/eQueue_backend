@@ -10,6 +10,7 @@ from .tasks import router as tasks_router
 from .submissions import router as submissions_router
 from .queues import router as queues_router
 from .queue_members import router as queue_members_router
+from .queue_websocket import router as queue_websocket_router
 
 __all__ = ("router",)
 
@@ -68,4 +69,9 @@ router.include_router(
     router=queue_members_router,
     prefix=settings.api.queue_members.prefix,
     tags=settings.api.queue_members.tags,
+)
+
+router.include_router(
+    router=queue_websocket_router,
+    prefix=settings.api.queue_websocket.prefix,
 )

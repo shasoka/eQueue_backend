@@ -1,0 +1,2 @@
+class UnexpectedBroadcastException(Exception):
+    pass

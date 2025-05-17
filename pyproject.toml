@@ -12,6 +12,7 @@ asyncpg = "^0.30.0"
 alembic = "^1.15.2"
 python-multipart = "^0.0.20"
 orjson = "^3.10.16"
+websockets = "^15.0.1"
 
 [tool.poetry.group.dev.dependencies]
 black = "^24.4.2"

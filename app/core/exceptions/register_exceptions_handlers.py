@@ -7,6 +7,7 @@ from core.exceptions import (
     UnclassifiedMoodleException,
     AdminSuicideException,
     NoEntityFoundException,
+    UnexpectedBroadcastException,
     UniqueConstraintViolationException,
     ForeignKeyViolationException,
     GroupIDMismatchException,
@@ -142,6 +143,20 @@ def register_exceptions_handlers(app: FastAPI) -> None:
             status_code=status.HTTP_403_FORBIDDEN,
             content={
                 "message": "Нарушено ограничение бизнес-логики",
+                "error": str(exc),
+            },
+        )
+
+    # noinspection PyUnusedLocal
+    @app.exception_handler(UnexpectedBroadcastException)
+    async def handle_unexpected_broadcast_exception(
+        request: Request,
+        exc: UnexpectedBroadcastException,
+    ) -> ORJSONResponse:
+        return ORJSONResponse(
+            status_code=status.HTTP_403_FORBIDDEN,
+            content={
+                "message": "Возникла проблема в работе websocket",
                 "error": str(exc),
             },
         )
