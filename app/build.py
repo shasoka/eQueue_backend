@@ -1,3 +1,5 @@
+"""Модуль, содержащий функцию для создания FastAPI-приложения."""
+
 from contextlib import asynccontextmanager
 from typing import Any, AsyncGenerator
 
@@ -13,6 +15,10 @@ from core.models import db_helper
 
 @asynccontextmanager
 async def lifespan(_app: FastAPI) -> AsyncGenerator[Any, Any]:
+    """
+    Функция, которая закрывает сессию подключения к БД при завершении работы.
+    """
+
     # На __aenter__ ничего не происходит
     # После __aenter__ yield
     yield
@@ -21,6 +27,15 @@ async def lifespan(_app: FastAPI) -> AsyncGenerator[Any, Any]:
 
 
 def build_fastapi_app() -> FastAPI:
+    """
+    Функция, собирающая приложение.
+
+    Здесь к объекту FastAPI подключаются роутеры, обработчики исключений,
+    миддлвары и биндятся шаблоны.
+
+    :return: собранное FastAPI-приложение
+    """
+
     app = FastAPI(
         default_response_class=ORJSONResponse,
         lifespan=lifespan,

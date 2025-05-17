@@ -1,3 +1,5 @@
+"""Модуль, содержащий точку входа приложения."""
+
 import uvicorn
 from fastapi import FastAPI
 
