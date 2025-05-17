@@ -1,8 +1,18 @@
+"""Модуль, реализующий функцию вычисления семестра по названию группы."""
+
 import re
 from datetime import datetime
 
 
 def extract_semester_from_group_name(group_name: str) -> int:
+    """
+    Функция, вычисляющая семестр из названия группы.
+
+    :param group_name: наименование студенческой группы (каждая группа в СФУ
+        содержит в своем названии номер года поступления)
+    :return: номер семестра
+    """
+
     match = re.search(r"\D*(\d+)", group_name)
     if not match:
         return 0
