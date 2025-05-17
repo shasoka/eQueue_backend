@@ -14,5 +14,5 @@ class QueueRead(QueueBase):
     id: int
 
 
-class QueueUpdate(QueueBase):
+class QueueUpdate(BaseModel):
     members_can_freeze: bool

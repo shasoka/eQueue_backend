@@ -8,7 +8,7 @@ from core.exceptions import (
     UniqueConstraintViolationException,
 )
 from core.models import Queue
-from core.schemas.queues import QueueCreate
+from core.schemas.queues import QueueCreate, QueueUpdate
 from crud.subjects import check_foreign_key_subject_id
 from crud.tasks import (
     check_if_user_is_permitted_to_get_tasks,
@@ -82,6 +82,7 @@ async def get_queue_by_subject_id(
     subject_id: int,
     constraint_check: bool = True,
     check_admin: bool = False,
+    check_membership: bool = False,
     user_id: Optional[int] = None,
 ) -> Optional[Queue]:
     stmt: Select = select(Queue).where(Queue.subject_id == subject_id)
@@ -94,6 +95,12 @@ async def get_queue_by_subject_id(
                 subject_id=subject_id,
                 user_id=user_id,
             )
+        if check_membership:
+            await check_if_user_is_permitted_to_get_tasks(
+                session=session,
+                subject_id=subject_id,
+                user_id=user_id,
+            )
         return queue
     elif constraint_check:
         return None
@@ -101,3 +108,40 @@ async def get_queue_by_subject_id(
         raise NoEntityFoundException(
             f"Очередь с subject_id={subject_id} не найдена."
         )
+
+
+# --- Update ---
+
+
+async def update_queue(
+    session: AsyncSession,
+    queue_upd: QueueUpdate,
+    subject_id: int,
+    user_id: int = None,
+) -> Queue:
+    # Проверка существования внешнего ключа subject_id
+    await check_foreign_key_subject_id(
+        session=session,
+        subject_id=subject_id,
+    )
+
+    # Получение очереди по subject_id
+    # Тут же проверка является ли пользователь администратором для обновления
+    # очереди
+    queue: Queue = await get_queue_by_subject_id(
+        session=session,
+        subject_id=subject_id,
+        constraint_check=False,
+        check_admin=True,
+        user_id=user_id,
+    )
+
+    # Распаковка pydantic-модели в SQLAlchemy-модель
+    queue_upd: dict = queue_upd.model_dump(exclude_unset=True)
+
+    for key, value in queue_upd.items():
+        setattr(queue, key, value)
+
+    await session.commit()
+    await session.refresh(queue)
+    return queue
