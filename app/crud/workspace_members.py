@@ -13,7 +13,7 @@ from core.exceptions import (
     UniqueConstraintViolationException,
     UserIsNotWorkspaceAdminException,
 )
-from core.models import Subject, Task, User, WorkspaceMember
+from core.models import Queue, Subject, Task, User, WorkspaceMember
 from core.schemas.workspace_members import (
     WorkspaceMemberCreate,
     WorkspaceMemberLeaderboardEntry,
@@ -436,5 +436,68 @@ async def delete_workspace_member(
 
     await session.delete(workspace_member)
     await session.commit()
+
+    # Удаление не связанных по ключу строк из таблицы submissions
+    from api.queue_websocket import manager
+    from crud.queue_members import get_queue_member_by_user_id_and_queue_id
+    from crud.queues import get_queue_by_subject_id
+    from crud.subjects import get_subjects_by_workspace_id
+    from crud.submissions import get_submission_by_user_id_and_task_id
+    from crud.tasks import get_tasks_by_subject_id
+
+    # Получение пула предметов, которые есть в данном рабочем пространстве
+    subjects: list[Subject] = await get_subjects_by_workspace_id(
+        session=session,
+        workspace_id=workspace_member.workspace_id,
+    )
+
+    # Получение пула заданий, которые есть в данном рабочем пространстве
+    tasks: list[Task] = []
+    for subj in subjects:
+        tasks.extend(
+            await get_tasks_by_subject_id(
+                session=session,
+                subject_id=subj.id,
+            )
+        )
+
+    # Поиск и удаление связанных submissions
+    for task in tasks:
+        if sub := await get_submission_by_user_id_and_task_id(
+            session=session,
+            user_id=workspace_member.user_id,
+            task_id=task.id,
+        ):
+            await session.delete(sub)
+            await session.commit()
+
+    # Удаление не связанных по ключу строк из таблицы queue_members
+
+    # Получение пула очередей, которые есть в данном рабочем пространстве
+    queues: list[Queue] = []
+    for subj in subjects:
+        queue: Queue = await get_queue_by_subject_id(
+            session=session,
+            subject_id=subj.id,
+        )
+        if queue:
+            queues.append(queue)
+
+    # Поиск и удаление связанных queue_members
+    for queue in queues:
+        if member := await get_queue_member_by_user_id_and_queue_id(
+            session=session,
+            user_id=workspace_member.user_id,
+            queue_id=queue.id,
+            constraint_check=True,
+        ):
+            await session.delete(member)
+            await session.commit()
+
+            # Уведомление подписчиков о обновлении очереди
+            await manager.notify_subs_about_queue_update(
+                session=session,
+                queue_id=queue.id,
+            )
 
     return workspace_member
