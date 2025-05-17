@@ -1,4 +1,5 @@
 import time
+import uuid
 from typing import Awaitable, Callable
 
 import orjson
@@ -28,6 +29,9 @@ def register_middlewares(app: FastAPI) -> None:
         call_next: Callable[[Request], Awaitable[Response]],
     ) -> Response:
 
+        # Генерация uid для различения запросов
+        chain_uuid: uuid.UUID = uuid.uuid4()
+
         # Подменяем _receive, чтобы downstream (router) тоже получил тело
         async def receive() -> dict:
             return {"type": "http.request", "body": body}
@@ -47,7 +51,8 @@ def register_middlewares(app: FastAPI) -> None:
             parsed_body = body.decode("utf-8", errors="replace")
 
         logger.info(
-            "Request: %s %s, Headers: %s, Body: %s, Query: %s",
+            "[%s] Request: %s %s, Headers: %s, Body: %s, Query: %s",
+            str(chain_uuid),
             request.method,
             request.url.path,
             dict(request.headers),
@@ -67,7 +72,8 @@ def register_middlewares(app: FastAPI) -> None:
             json_body = orjson.loads(response_body)
             compact_json = orjson.dumps(json_body).decode("utf-8")
             logger.info(
-                "Response [%s in %s sec]: %s",
+                "[%s] Response [%s in %s sec]: %s",
+                str(chain_uuid),
                 response.status_code,
                 response.headers["X-Process-Time"],
                 compact_json,
