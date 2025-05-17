@@ -7,8 +7,8 @@ from core.schemas import str255
 
 __all__ = (
     "WorkspaceCreate",
-    "WorkspaceUpdate",
     "WorkspaceRead",
+    "WorkspaceUpdate",
 )
 
 

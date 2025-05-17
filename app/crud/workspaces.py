@@ -23,8 +23,11 @@ from utils import extract_semester_from_group_name
 from .groups import check_foreign_key_group_id, get_group_by_id
 
 __all__ = (
+    "check_foreign_key_workspace_id",
     "create_workspace",
+    "delete_workspace",
     "get_workspace_by_id",
+    "get_workspaces_which_user_is_member_of",
     "update_workspace",
 )
 

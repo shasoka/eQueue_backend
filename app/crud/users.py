@@ -13,6 +13,7 @@ from core.exceptions import (
 from .groups import check_foreign_key_group_id
 
 __all__ = (
+    "check_foreign_key_user_id",
     "create_user",
     "get_user_by_access_token",
     "get_user_by_ecourses_id",

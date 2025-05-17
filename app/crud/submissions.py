@@ -10,6 +10,12 @@ from core.exceptions import (
 from core.models import Submission
 from crud.tasks import get_task_by_id
 
+__all__ = (
+    "create_submission",
+    "delete_submission_by_user_id_and_task_id",
+    "get_submission_by_user_id_and_task_id",
+)
+
 
 # --- Проверка ограничений ---
 
@@ -24,17 +30,6 @@ async def check_complex_unique_user_id_task_id(
             f"Нарушено комплексное ограничение уникальности в таблице "
             f"submissions: пара значений user_id={user_id} и "
             f"task_id={task_id} уже существует в таблице tasks."
-        )
-
-
-async def check_if_user_is_permitted_to_modify_submissions(
-    target_user_id: int,
-    current_user_id: int,
-) -> None:
-    if target_user_id != current_user_id:
-        raise SubmissionForbiddenException(
-            f"Пользователь с id={current_user_id} не может помечать задания "
-            f"пользователя с id={target_user_id}."
         )
 
 

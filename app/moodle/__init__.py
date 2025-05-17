@@ -1,5 +1,7 @@
 from core.exceptions import UnclassifiedMoodleException
 
+__all__ = ("validate_ecourses_response",)
+
 
 async def validate_ecourses_response(
     response: dict,

@@ -5,9 +5,9 @@ from pydantic import BaseModel
 
 from core.schemas import str255
 
-
 __all__ = (
     "WorkspaceMemberCreate",
+    "WorkspaceMemberLeaderboardEntry",
     "WorkspaceMemberRead",
     "WorkspaceMemberUpdate",
 )

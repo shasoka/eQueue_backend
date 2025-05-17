@@ -9,7 +9,11 @@ from core.exceptions import (
 )
 from core.models import Group
 
-__all__ = ("get_group_by_id", "get_all_groups")
+__all__ = (
+    "check_foreign_key_group_id",
+    "get_all_groups",
+    "get_group_by_id",
+)
 
 
 # --- Проверка ограничений внешнего ключа ---

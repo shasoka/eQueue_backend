@@ -16,8 +16,14 @@ from crud.workspace_members import (
 )
 from crud.workspaces import check_foreign_key_workspace_id
 
-
-__all__ = ("get_subjects_by_workspace_id",)
+__all__ = (
+    "check_foreign_key_subject_id",
+    "create_subjects",
+    "delete_subject",
+    "get_subject_by_id",
+    "get_subjects_by_workspace_id",
+    "update_subject",
+)
 
 
 # --- Проверка ограничений внешнего ключа ---

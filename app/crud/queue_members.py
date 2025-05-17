@@ -18,6 +18,13 @@ from crud.tasks import (
     get_tasks_by_subject_id,
 )
 
+__all__ = (
+    "create_queue_member",
+    "get_queue_member_by_user_id_and_queue_id",
+    "leave_queue_by_user_id_and_queue_id",
+    "switch_queue_member_status_by_user_id_and_queue_id",
+)
+
 
 # --- Комплексная проверка, использующаяся во многих функциях ---
 

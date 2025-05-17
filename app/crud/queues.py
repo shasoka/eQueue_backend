@@ -17,6 +17,16 @@ from crud.tasks import (
     check_if_user_is_permitted_to_modify_tasks,
 )
 
+__all__ = (
+    "check_foreign_key_queue_id",
+    "create_queue",
+    "delete_queue",
+    "get_queue_by_id",
+    "get_queue_by_subject_id",
+    "get_queue_for_ws_message",
+    "update_queue",
+)
+
 
 # --- Проверка ограничений внешнего ключа ---
 

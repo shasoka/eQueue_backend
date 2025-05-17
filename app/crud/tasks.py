@@ -19,6 +19,19 @@ from crud.workspace_members import (
 )
 from moodle.tasks import get_tasks_from_course_structure
 
+__all__ = (
+    "check_foreign_key_task_id",
+    "check_if_user_is_permitted_to_get_tasks",
+    "check_if_user_is_permitted_to_modify_tasks",
+    "create_tasks",
+    "delete_task",
+    "get_task_by_id",
+    "get_tasks_by_subject_id",
+    "get_tasks_by_subject_id_with_submissions",
+    "get_tasks_from_ecourses",
+    "update_task",
+)
+
 
 # --- Проверка ограничений внешнего ключа ---
 

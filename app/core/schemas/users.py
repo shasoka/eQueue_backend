@@ -5,14 +5,13 @@ from pydantic import BaseModel
 
 from core.schemas import str255
 
-
 __all__ = (
+    "UserAuth",
     "UserCreate",
+    "UserInfoFromEcourses",
+    "UserLogin",
     "UserRead",
     "UserUpdate",
-    "UserAuth",
-    "UserLogin",
-    "UserInfoFromEcourses",
 )
 
 

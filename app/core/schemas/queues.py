@@ -1,5 +1,11 @@
 from pydantic import BaseModel
 
+__all__ = (
+    "QueueCreate",
+    "QueueRead",
+    "QueueUpdate",
+)
+
 
 class QueueBase(BaseModel):
     subject_id: int

@@ -5,7 +5,12 @@ from pydantic import BaseModel
 
 from core.schemas import str255
 
-__all__ = ("TaskCreate", "TaskRead", "TaskUpdate")
+__all__ = (
+    "TaskCreate",
+    "TaskRead",
+    "TaskReadWithSubmission",
+    "TaskUpdate",
+)
 
 
 class TaskBase(BaseModel):

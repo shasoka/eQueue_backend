@@ -3,6 +3,11 @@ from typing import Literal, Optional
 
 from pydantic import BaseModel
 
+__all__ = (
+    "QueueMemberRead",
+    "QueueMemberUpdate",
+)
+
 
 class QueueMemberBase(BaseModel):
     user_id: int

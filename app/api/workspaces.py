@@ -22,9 +22,7 @@ from crud.workspaces import (
 )
 from moodle.auth import get_current_user
 
-
 __all__ = ("router",)
-
 
 router = APIRouter()
 

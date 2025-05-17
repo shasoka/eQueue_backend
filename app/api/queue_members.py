@@ -12,6 +12,8 @@ from fastapi import APIRouter, Depends
 from moodle.auth import get_current_user
 from sqlalchemy.ext.asyncio import AsyncSession
 
+__all__ = ("router",)
+
 router = APIRouter()
 
 

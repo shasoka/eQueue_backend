@@ -2,7 +2,7 @@ from pydantic import BaseModel
 
 from core.schemas import str255
 
-__all__ = ("GroupBase", "GroupRead")
+__all__ = ("GroupRead",)
 
 
 class GroupBase(BaseModel):

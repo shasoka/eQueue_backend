@@ -5,10 +5,10 @@ from pydantic import BaseModel
 from core.schemas import str255
 
 __all__ = (
-    "SubjectRead",
-    "SubjectCreate",
-    "SubjectUpdate",
     "EcoursesSubjectDescription",
+    "SubjectCreate",
+    "SubjectRead",
+    "SubjectUpdate",
 )
 
 

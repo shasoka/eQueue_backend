@@ -18,18 +18,17 @@ from .websocket_exceptions import UnexpectedWebsocketException
 
 from .register_exceptions_handlers import register_exceptions_handlers
 
-
 __all__ = (
-    "ForeignKeyViolationException",
-    "UniqueConstraintViolationException",
-    "register_exceptions_handlers",
-    "UnclassifiedMoodleException",
-    "NoEntityFoundException",
-    "GroupIDMismatchException",
-    "UserIsNotWorkspaceAdminException",
-    "AdminSuicideException",
     "AccessTokenException",
+    "AdminSuicideException",
+    "ForeignKeyViolationException",
+    "GroupIDMismatchException",
+    "NoEntityFoundException",
+    "register_exceptions_handlers",
     "SubmissionForbiddenException",
     "SubjectIsOutOfWorkspaceException",
+    "UnclassifiedMoodleException",
     "UnexpectedWebsocketException",
+    "UniqueConstraintViolationException",
+    "UserIsNotWorkspaceAdminException",
 )

@@ -22,10 +22,15 @@ from crud.users import check_foreign_key_user_id, get_user_by_id
 from crud.workspaces import check_foreign_key_workspace_id
 
 __all__ = (
-    "get_workspace_members_count_by_workspace_id",
-    "create_workspace_member",
     "check_if_user_is_workspace_admin",
+    "check_if_user_is_workspace_member",
+    "create_workspace_member",
+    "delete_workspace_member",
     "get_workspace_member_by_id",
+    "get_workspace_members_by_workspace_id_and_status",
+    "get_workspace_members_count_by_workspace_id",
+    "get_workspace_members_leaderboard_by_subject_submissions_count",
+    "update_workspace_member",
 )
 
 # --- Проверка ограничений ---
