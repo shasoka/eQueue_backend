@@ -28,7 +28,7 @@ class MoodleOAuth2(OAuth2PasswordBearer):
         else:
             # Если пользователь не найден, то выбрасываем исключение
             raise AccessTokenException(
-                "Ошибка при попытке авторизации в eQueue"
+                "Ошибка при попытке авторизации в eQueue."
             )
         return user
 

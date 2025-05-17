@@ -153,7 +153,7 @@ async def get_workspace_member_by_user_id_and_workspace_id(
     else:
         raise NoEntityFoundException(
             f"Член рабочего пространства с user_id={user_id} и "
-            f"workspace_id={workspace_id} не найден"
+            f"workspace_id={workspace_id} не найден."
         )
 
 
@@ -301,7 +301,7 @@ async def get_workspace_members_leaderboard_by_subject_submissions_count(
         if subject.workspace_id != workspace_id:
             raise SubjectIsOutOfWorkspaceException(
                 f"Предмет с id={subject_id} не принадлежит рабочему "
-                f"пространству с id={workspace_id}"
+                f"пространству с id={workspace_id}."
             )
 
         # Получаем пул заданий данного предмета
@@ -430,9 +430,8 @@ async def delete_workspace_member(
     # Проверка удаления администратора
     if workspace_member.is_admin:
         raise AdminSuicideException(
-            "Член рабочего пространства с id="
-            f"{workspace_member.id} является администратором и не может быть "
-            f"удален"
+            f"Член рабочего пространства с id={workspace_member.id} "
+            f"является администратором и не может быть удален."
         )
 
     await session.delete(workspace_member)

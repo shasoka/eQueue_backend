@@ -169,7 +169,7 @@ async def get_task_by_id(
     elif constraint_check:
         return None
     else:
-        raise NoEntityFoundException(f"Задание с id={task_id} не найдено")
+        raise NoEntityFoundException(f"Задание с id={task_id} не найдено.")
 
 
 async def get_task_by_subject_id_and_name(

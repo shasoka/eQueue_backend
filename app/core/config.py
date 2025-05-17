@@ -75,6 +75,11 @@ class ApiSubmissions(BaseModel):
     from_task: str = "/from_task"
 
 
+class ApiQueues(BaseModel):
+    prefix: str = "/queues"
+    tags: list[str] = ["Queues"]
+
+
 class ApiBase(BaseModel):
     prefix: str = "/api"
     tags: list[str] = ["eQueue Api"]
@@ -92,6 +97,7 @@ class ApiBase(BaseModel):
     subjects: ApiSubjects = ApiSubjects()
     tasks: ApiTasks = ApiTasks()
     submissions: ApiSubmissions = ApiSubmissions()
+    queues: ApiQueues = ApiQueues()
 
 
 class MoodleAPI(BaseModel):

@@ -157,7 +157,7 @@ async def get_subject_by_id(
     elif constraint_check:
         return None
     else:
-        raise NoEntityFoundException(f"Предмет с id={subject_id} не найден")
+        raise NoEntityFoundException(f"Предмет с id={subject_id} не найден.")
 
 
 async def get_subject_by_workspace_id_and_ecourses_id(

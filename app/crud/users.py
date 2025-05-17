@@ -122,7 +122,7 @@ async def get_user_by_id(
     else:
         # В противном случае выбрасываем исключение, так как пользователь не
         # найден при попытке его получения
-        raise NoEntityFoundException(f"Пользователь с id={id} не найден")
+        raise NoEntityFoundException(f"Пользователь с id={id} не найден.")
 
 
 async def get_user_by_ecourses_id(
@@ -146,7 +146,7 @@ async def get_user_by_ecourses_id(
         return None
     else:
         raise NoEntityFoundException(
-            f"Пользователь с ecourses_id={ecourses_id} не найден"
+            f"Пользователь с ecourses_id={ecourses_id} не найден."
         )
 
 
@@ -162,7 +162,7 @@ async def get_user_by_access_token(
         return None
     else:
         raise NoEntityFoundException(
-            f"Пользователь с таким access_token не найден"
+            f"Пользователь с таким access_token не найден."
         )
 
 

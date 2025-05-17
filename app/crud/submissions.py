@@ -34,7 +34,7 @@ async def check_if_user_is_permitted_to_modify_submissions(
     if target_user_id != current_user_id:
         raise SubmissionForbiddenException(
             f"Пользователь с id={current_user_id} не может помечать задания "
-            f"пользователя с id={target_user_id}"
+            f"пользователя с id={target_user_id}."
         )
 
 

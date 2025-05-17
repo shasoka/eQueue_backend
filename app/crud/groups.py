@@ -43,7 +43,7 @@ async def get_group_by_id(
     else:
         # В противном случае выбрасываем исключение, так как группа не
         # найдена при попытке ее получения
-        raise NoEntityFoundException(f"Группа с id={group_id} не найдена")
+        raise NoEntityFoundException(f"Группа с id={group_id} не найдена.")
 
 
 async def get_all_groups(
