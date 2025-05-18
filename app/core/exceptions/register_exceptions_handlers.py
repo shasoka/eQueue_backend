@@ -1,3 +1,8 @@
+"""
+Модуль, реализующий функцию регистрации обработчиков исключений в
+FastAPI-приложении.
+"""
+
 from fastapi import FastAPI, Request, status
 from fastapi.responses import ORJSONResponse
 
@@ -16,6 +21,11 @@ from core.exceptions import (
 
 
 def register_exceptions_handlers(app: FastAPI) -> None:
+    """
+    Функция, регистрирующая обработчики исключений в FastAPI-приложении.
+
+    :param app: объект FastAPI
+    """
 
     # noinspection PyUnusedLocal
     @app.exception_handler(UniqueConstraintViolationException)
@@ -23,6 +33,10 @@ def register_exceptions_handlers(app: FastAPI) -> None:
         request: Request,
         exc: UniqueConstraintViolationException,
     ) -> ORJSONResponse:
+        """
+        Функция, обрабатывающая исключение UniqueConstraintViolationException.
+        """
+
         return ORJSONResponse(
             status_code=status.HTTP_409_CONFLICT,
             content={
@@ -37,6 +51,8 @@ def register_exceptions_handlers(app: FastAPI) -> None:
         request: Request,
         exc: NoEntityFoundException,
     ) -> ORJSONResponse:
+        """Функция, обрабатывающая исключение NoEntityFoundException."""
+
         return ORJSONResponse(
             status_code=status.HTTP_404_NOT_FOUND,
             content={
@@ -51,6 +67,8 @@ def register_exceptions_handlers(app: FastAPI) -> None:
         request: Request,
         exc: ForeignKeyViolationException,
     ) -> ORJSONResponse:
+        """Функция, обрабатывающая исключение ForeignKeyViolationException."""
+
         return ORJSONResponse(
             status_code=status.HTTP_409_CONFLICT,
             content={
@@ -66,6 +84,8 @@ def register_exceptions_handlers(app: FastAPI) -> None:
         request: Request,
         exc: UnclassifiedMoodleException,
     ) -> ORJSONResponse:
+        """Функция, обрабатывающая исключение UnclassifiedMoodleException."""
+
         return ORJSONResponse(
             status_code=status.HTTP_403_FORBIDDEN,
             content={
@@ -80,6 +100,8 @@ def register_exceptions_handlers(app: FastAPI) -> None:
         request: Request,
         exc: AccessTokenException,
     ) -> ORJSONResponse:
+        """Функция, обрабатывающая исключение AccessTokenException."""
+
         return ORJSONResponse(
             status_code=status.HTTP_401_UNAUTHORIZED,
             content={
@@ -96,6 +118,8 @@ def register_exceptions_handlers(app: FastAPI) -> None:
         request: Request,
         exc: GroupIDMismatchException,
     ) -> ORJSONResponse:
+        """Функция, обрабатывающая исключение GroupIDMismatchException."""
+
         return ORJSONResponse(
             status_code=status.HTTP_403_FORBIDDEN,
             content={
@@ -110,6 +134,8 @@ def register_exceptions_handlers(app: FastAPI) -> None:
         request: Request,
         exc: AdminSuicideException,
     ) -> ORJSONResponse:
+        """Функция, обрабатывающая исключение AdminSuicideException."""
+
         return ORJSONResponse(
             status_code=status.HTTP_409_CONFLICT,
             content={
@@ -124,6 +150,10 @@ def register_exceptions_handlers(app: FastAPI) -> None:
         request: Request,
         exc: SubjectIsOutOfWorkspaceException,
     ) -> ORJSONResponse:
+        """
+        Функция, обрабатывающая исключение SubjectIsOutOfWorkspaceException.
+        """
+
         return ORJSONResponse(
             status_code=status.HTTP_403_FORBIDDEN,
             content={
@@ -138,6 +168,8 @@ def register_exceptions_handlers(app: FastAPI) -> None:
         request: Request,
         exc: UnexpectedWebsocketException,
     ) -> ORJSONResponse:
+        """Функция, обрабатывающая исключение UnexpectedWebsocketException."""
+
         return ORJSONResponse(
             status_code=status.HTTP_403_FORBIDDEN,
             content={

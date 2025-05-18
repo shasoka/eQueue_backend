@@ -1,3 +1,8 @@
+"""
+Пакет, содержащий описание кастомных исключений и функцию регистрации их
+обработчиков.
+"""
+
 from .business_logic_exceptions import (
     AdminSuicideException,
     GroupIDMismatchException,
