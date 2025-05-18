@@ -81,7 +81,7 @@ async def get_queue_by_subject_id(
 @router.patch(
     "/{sid}",
     response_model=QueueRead,
-    summary="Обновление очереди",
+    summary="Обновление очереди по ID предмета",
     responses=generate_responses_for_swagger(
         codes=(
             status.HTTP_401_UNAUTHORIZED,

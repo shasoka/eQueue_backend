@@ -22,6 +22,7 @@ router = APIRouter()
 @router.post(
     "/{qid}",
     response_model=QueueMemberRead,
+    summary="Добавление пользователя в очередь",
     responses=generate_responses_for_swagger(
         codes=(
             status.HTTP_401_UNAUTHORIZED,
@@ -35,6 +36,11 @@ async def create_queue_member(
     session: Annotated[AsyncSession, Depends(db_helper.session_getter)],
     current_user: Annotated[User, Depends(get_current_user)],
 ) -> QueueMember:
+    """
+    ### Эндпоинт добавления пользователя в очередь.
+    \nПользователь может добавить в очередь только себя.
+    """
+
     return await _create_queue_member(
         session=session,
         current_user_id=current_user.id,
@@ -45,6 +51,7 @@ async def create_queue_member(
 @router.patch(
     "/{qid}",
     response_model=QueueMemberRead,
+    summary="Изменение статуса пользователя в очереди",
     responses=generate_responses_for_swagger(
         codes=(
             status.HTTP_401_UNAUTHORIZED,
@@ -59,6 +66,12 @@ async def partial_update_queue_member(
     current_user: Annotated[User, Depends(get_current_user)],
     session: Annotated[AsyncSession, Depends(db_helper.session_getter)],
 ) -> QueueMember:
+    """
+    ### Эндпоинт изменения статуса пользователя в очереди.
+    \nПользователь может изменить статус в очереди только себя.
+    \nСтатус меняется на противоположный (`active` / `frozen`).
+    """
+
     return await switch_queue_member_status_by_user_id_and_queue_id(
         session=session,
         current_user_id=current_user.id,
@@ -69,6 +82,7 @@ async def partial_update_queue_member(
 @router.delete(
     "/{qid}",
     response_model=QueueMemberRead,
+    summary="Удаление пользователя из очереди",
     responses=generate_responses_for_swagger(
         codes=(
             status.HTTP_401_UNAUTHORIZED,
@@ -83,6 +97,11 @@ async def delete_queue_member(
     current_user: Annotated[User, Depends(get_current_user)],
     session: Annotated[AsyncSession, Depends(db_helper.session_getter)],
 ) -> QueueMember:
+    """
+    ### Эндпоинт удаления пользователя из очереди.
+    \nПользователь может удалить из очереди только себя.
+    """
+
     return await leave_queue_by_user_id_and_queue_id(
         session=session,
         current_user_id=current_user.id,
@@ -93,6 +112,7 @@ async def delete_queue_member(
 @router.delete(
     settings.api.queue_members.leave_and_mark + "/{qid}",
     response_model=QueueMemberRead,
+    summary="Удаление пользователя из очереди и пометка ближайшего задания выполненным",
     responses=generate_responses_for_swagger(
         codes=(
             status.HTTP_401_UNAUTHORIZED,
@@ -107,6 +127,12 @@ async def delete_queue_member_and_submit_nearest_task(
     current_user: Annotated[User, Depends(get_current_user)],
     session: Annotated[AsyncSession, Depends(db_helper.session_getter)],
 ) -> QueueMember:
+    """
+    ### Эндпоинт удаления пользователя из очереди и пометка ближайшего задания выполненным.
+    \nПользователь может удалить из очереди только себя.
+    \nБлижайшее задание вычисляется по `id` задания. К примеру, если по предмету существуют задания с `id=(1, 2, 3)` и пользователь сдал задание с `id=2`, то ближайшее задание будет `id=3`. Если таковых заданий не осталось, ничего помечено не будет.
+    """
+
     return await leave_queue_by_user_id_and_queue_id(
         session=session,
         current_user_id=current_user.id,
