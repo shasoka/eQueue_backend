@@ -41,6 +41,9 @@ def build_fastapi_app() -> FastAPI:
         lifespan=lifespan,
         title="eQueue API",
         summary="Шенберг Аркадий Алексеевич пытается в backend...",
+        description="Серверная часть **eQueue**. Добро пожаловать 🤝"
+        "\n\n[GitHub➚](https://github.com/shasoka/eQueue_backend)",
+        version="1.0.0",
         swagger_ui_parameters={
             "syntaxHighlight": {
                 "theme": "obsidian",

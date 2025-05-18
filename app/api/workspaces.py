@@ -28,6 +28,7 @@ router = APIRouter()
 @router.post(
     "",
     response_model=WorkspaceRead,
+    summary="Создание нового рабочего пространства",
     responses=generate_responses_for_swagger(
         codes=(
             status.HTTP_401_UNAUTHORIZED,
@@ -41,6 +42,12 @@ async def create_workspace(
     current_user: Annotated[User, Depends(get_current_user)],
     session: Annotated[AsyncSession, Depends(db_helper.session_getter)],
 ) -> WorkspaceRead:
+    """
+    ### Эндпоинт создания рабочего пространства.
+    \nID группы рабочего пространства и пользователя, создающего его, должны совпадать.
+    \nПосле создания рабочего пространства, пользователь автоматически становится его администратором.
+    """
+
     return await _create_workspace(
         session=session,
         workspace_in=workspace_in,
@@ -51,6 +58,7 @@ async def create_workspace(
 @router.get(
     settings.api.workspaces.subscribed,
     response_model=list[WorkspaceRead],
+    summary="Получение списка рабочих пространств, в которых пользователь является участником",
     responses=generate_responses_for_swagger(
         codes=(status.HTTP_401_UNAUTHORIZED,)
     ),
@@ -59,6 +67,11 @@ async def get_workspaces_which_user_is_member_of(
     current_user: Annotated[User, Depends(get_current_user)],
     session: Annotated[AsyncSession, Depends(db_helper.session_getter)],
 ) -> list[WorkspaceRead]:
+    """
+    ### Эндпоинт получения списка рабочих пространств, в которых текуший пользователь является участником.
+    \nВозвращаемый список содержит все рабочие пространства, независимо от статуса пользователя в них.
+    """
+
     return await _get_workspaces_which_user_is_member_of(
         session=session,
         user_id=current_user.id,
@@ -68,6 +81,7 @@ async def get_workspaces_which_user_is_member_of(
 @router.get(
     "/{id}",
     response_model=WorkspaceRead,
+    summary="Получение информации о рабочем пространстве по ID",
     responses=generate_responses_for_swagger(
         codes=(
             status.HTTP_401_UNAUTHORIZED,
@@ -80,6 +94,11 @@ async def get_workspace_by_id(
     _: Annotated[User, Depends(get_current_user)],
     session: Annotated[AsyncSession, Depends(db_helper.session_getter)],
 ) -> WorkspaceRead:
+    """
+    ### Эндпоинт для получения информации о рабочем пространстве по ID.
+    \nВозвращает информацию о рабочем пространстве независимо от того, является ли пользователь его членом.
+    """
+
     return await _get_workspace_by_id(
         session=session,
         workspace_id=id,
@@ -90,6 +109,7 @@ async def get_workspace_by_id(
 @router.patch(
     "/{id}",
     response_model=WorkspaceRead,
+    summary="Обновление рабочего пространства",
     responses=generate_responses_for_swagger(
         codes=(
             status.HTTP_401_UNAUTHORIZED,
@@ -105,6 +125,12 @@ async def partial_update_workspace(
     current_user: Annotated[User, Depends(get_current_user)],
     session: Annotated[AsyncSession, Depends(db_helper.session_getter)],
 ) -> WorkspaceRead:
+    """
+    ### Эндпоинт обновления рабочего пространства.
+    \nТолько пользователь, являющийся администратором рабочего пространства, может его удалить.
+    \nОбновлению подлежит только поле `name`.
+    """
+
     return await update_workspace(
         session=session,
         workspace_upd=workspace_upd,
@@ -116,6 +142,7 @@ async def partial_update_workspace(
 @router.delete(
     "/{id}",
     response_model=WorkspaceRead,
+    summary="Удаление рабочего пространства",
     responses=generate_responses_for_swagger(
         codes=(
             status.HTTP_401_UNAUTHORIZED,
@@ -129,6 +156,11 @@ async def delete_workspace(
     current_user: Annotated[User, Depends(get_current_user)],
     session: Annotated[AsyncSession, Depends(db_helper.session_getter)],
 ) -> Optional[WorkspaceRead]:
+    """
+    ### Эндпоинт удаления рабочего пространства.
+    \nТолько пользователь, являющийся администратором рабочего пространства, может его удалить.
+    """
+
     return await _delete_workspace(
         session=session,
         user_id=current_user.id,
