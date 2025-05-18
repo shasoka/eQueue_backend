@@ -1,3 +1,5 @@
+"""Модуль, содержащий функции для работы с предметами с еКурсов."""
+
 from urllib.parse import quote_plus as url_encode
 
 import httpx
@@ -18,12 +20,20 @@ async def get_user_enrolled_courses(
     session: AsyncSession,
 ) -> list[SubjectCreate]:
     """
-    Функция, возвращающая список предметов с еКурсов.
+    Функция, возвращающая список доступных пользователю предметов с еКурсов.
 
-    :param user:
-    :param session:
-    :param target_workspace_id:
-    :return:
+    :param user: текущий авторизованный пользователь
+    :param session: сессия подключения к БД
+    :param target_workspace_id: id рабочего пространства, в которое
+        планируется добавление предметов
+    :return: список распаршенных предметов
+
+    :raises ForeignKeyViolationException: если рабочее пространство не
+        существует
+    :raises UserIsNotWorkspaceAdminException: если пользователь не является
+        администратором рабочего пространства
+    :raises UnclassifiedMoodleException: если ответ от еКурсов содержит
+        сообщение об ошибке
     """
 
     # Проверка сущестования рабочего пространства

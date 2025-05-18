@@ -1,3 +1,5 @@
+"""Модуль, содержащий функции для работы с пользователями еКурсов."""
+
 import httpx
 from httpx import Response
 
@@ -12,6 +14,17 @@ async def upload_new_profile_avatar(
     token: str,
     files: dict,
 ) -> str:
+    """
+    Функция, отправляющая файл на сервер Moodle для обновления аватара
+    пользователя.
+
+    :param token: access_token пользователя для доступа к методам Moodle
+    :param files: словарь, содержащий имя файла, сам файл в байтах и его тип
+    :return: строка-ссылка на новый аватар
+
+    :raises UnclassifiedMoodleException: если ответ от еКурсов содержит
+        сообщение об ошибке
+    """
 
     async with httpx.AsyncClient() as client:
         url: str = settings.moodle.upload_file_url % url_encode(token)

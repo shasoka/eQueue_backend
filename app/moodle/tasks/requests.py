@@ -1,3 +1,5 @@
+"""Модуль, содержащий функции для работы с заданиями по предметам с еКурсов."""
+
 import httpx
 
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -14,6 +16,14 @@ async def _has_duplicate(
     assignments: list[TaskCreate],
     name: str,
 ) -> bool:
+    """
+    Функция, проверяющая наличие дубликатов заданий по их именам.
+
+    :param assignments: список заданий
+    :param name: наименование задания, по которому происходит сравнение
+    :return: True - если дубликат есть, False - если нет
+    """
+
     for assignment in assignments:
         if assignment.name == name:
             return True
@@ -26,6 +36,19 @@ async def get_tasks_from_course_structure(
     subject_id: int,
     session: AsyncSession,
 ) -> list[TaskCreate]:
+    """
+    Функция, которая парсит структуру курса и возвращает список заданий.
+
+    :param current_user: текущий авторизованный пользователь
+    :param subject_ecourses_id: id предмета на еКурсах
+    :param subject_id: id предмета в БД
+    :param session: сессия подключения к БД
+    :return: список распаршенных заданий
+
+    :raises UnclassifiedMoodleException: если ответ от еКурсов содержит
+        сообщение об ошибке
+    """
+
     url = settings.moodle.course_structure_url % (
         url_encode(current_user.access_token),
         url_encode(str(subject_ecourses_id)),

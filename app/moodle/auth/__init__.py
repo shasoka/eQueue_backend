@@ -1,3 +1,8 @@
+"""
+Пакет, содержащий функции, которые взаимодействуют с REST API еКурсов и
+логически связаны с авторизацией пользователей.
+"""
+
 from .requests import (
     auth_by_moodle_credentials,
     check_access_token_persistence,

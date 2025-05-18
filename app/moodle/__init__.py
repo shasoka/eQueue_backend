@@ -1,3 +1,5 @@
+"""Пакет, содержащий функции, которые взаимодействуют с REST API еКурсов."""
+
 from core.exceptions import UnclassifiedMoodleException
 
 __all__ = ("validate_ecourses_response",)
