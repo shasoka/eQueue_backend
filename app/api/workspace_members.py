@@ -30,6 +30,7 @@ router = APIRouter()
 @router.post(
     "/{wid}",
     response_model=WorkspaceMemberRead,
+    summary="Добавление пользователя в рабочее пространство",
     responses=generate_responses_for_swagger(
         codes=(
             status.HTTP_401_UNAUTHORIZED,
@@ -42,6 +43,11 @@ async def create_workspace_member(
     current_user: Annotated[User, Depends(get_current_user)],
     session: Annotated[AsyncSession, Depends(db_helper.session_getter)],
 ) -> WorkspaceMember:
+    """
+    ### Эндпоинт добавления пользователя в рабочее пространство.
+    \nПри присоединении к рабочему пространству пользователю присваивается статус `pending`. После подтверждения администратором статус переходит в `approved`, в противном случае `rejected`.
+    """
+
     return await _create_workspace_member(
         session=session,
         workspace_member_in=WorkspaceMemberCreate(
@@ -56,6 +62,7 @@ async def create_workspace_member(
 @router.get(
     settings.api.workspace_members.all + "/{id}/{status}",
     response_model=list[WorkspaceMemberRead],
+    summary="Получение членов рабочего пространства по ID рабочего пространства и статусу членов",
     responses=generate_responses_for_swagger(
         codes=(
             status.HTTP_401_UNAUTHORIZED,
@@ -70,6 +77,11 @@ async def get_workspace_members_by_workspace_id_and_status(
     current_user: Annotated[User, Depends(get_current_user)],
     session: Annotated[AsyncSession, Depends(db_helper.session_getter)],
 ) -> list[WorkspaceMember]:
+    """
+    ### Эндпоинт получения членов рабочего пространства по ID рабочего пространства и статусу членов.
+    \nТолько администраторы имеют доступ к членам рабочего пространства, чей статус не равен `approved`.
+    """
+
     return await _get_workspace_members_by_workspace_id_and_status(
         session=session,
         workspace_id=id,
@@ -81,6 +93,7 @@ async def get_workspace_members_by_workspace_id_and_status(
 @router.get(
     settings.api.workspace_members.leaderboard + "/{wid}",
     response_model=list[WorkspaceMemberLeaderboardEntry],
+    summary="Получение лидерборда по количеству сданных работ в рабочем пространстве",
     responses=generate_responses_for_swagger(
         codes=(
             status.HTTP_401_UNAUTHORIZED,
@@ -95,6 +108,11 @@ async def get_workspace_leaderboard_by_subject(
     session: Annotated[AsyncSession, Depends(db_helper.session_getter)],
     sid: Optional[int] = None,
 ) -> list[WorkspaceMemberLeaderboardEntry]:
+    """
+    ### Эндпоинт получения лидерборда по количеству сданных работ в рабочем пространстве.
+    \nВ качестве параметра `sid` может быть передан идентификатор предмета, для которого нужно получить лидерборд или `None`, если нужно получить лидерборд по всем предметам.
+    """
+
     return (
         await get_workspace_members_leaderboard_by_subject_submissions_count(
             session=session,
@@ -108,6 +126,7 @@ async def get_workspace_leaderboard_by_subject(
 @router.get(
     "/{id}",
     response_model=WorkspaceMemberRead,
+    summary="Получение информации о члене рабочего пространства по ID",
     responses=generate_responses_for_swagger(
         codes=(
             status.HTTP_401_UNAUTHORIZED,
@@ -121,6 +140,11 @@ async def get_workspace_member_by_id(
     current_user: Annotated[User, Depends(get_current_user)],
     session: Annotated[AsyncSession, Depends(db_helper.session_getter)],
 ) -> WorkspaceMember:
+    """
+    ### Эндпоинт получения информации о члене рабочего пространства по ID.
+    \nИнформацию о члене рабочего пространства может получить только член того же рабочего пространства.
+    """
+
     return await _get_workspace_member_by_id(
         session=session,
         workspace_member_id=id,
@@ -132,6 +156,7 @@ async def get_workspace_member_by_id(
 @router.patch(
     "/{id}",
     response_model=WorkspaceMemberRead,
+    summary="Обновление информации о члене рабочего пространства по ID",
     responses=generate_responses_for_swagger(
         codes=(
             status.HTTP_401_UNAUTHORIZED,
@@ -146,6 +171,11 @@ async def partial_update_workspace_member(
     session: Annotated[AsyncSession, Depends(db_helper.session_getter)],
     workspace_member_upd: WorkspaceMemberUpdate,
 ) -> WorkspaceMember:
+    """
+    ### Эндпоинт обновления информации о члене рабочего пространства по ID.
+    \nИнформацию о члене рабочего пространства может обновить только администратор рабочего пространства.
+    """
+
     return await update_workspace_member(
         session=session,
         workspace_member_upd=workspace_member_upd,
@@ -157,6 +187,7 @@ async def partial_update_workspace_member(
 @router.delete(
     "/id",
     response_model=WorkspaceMemberRead,
+    summary="Удаление члена рабочего пространства по ID",
     responses=generate_responses_for_swagger(
         codes=(
             status.HTTP_401_UNAUTHORIZED,
@@ -170,6 +201,12 @@ async def delete_workspace_member(
     current_user: Annotated[User, Depends(get_current_user)],
     session: Annotated[AsyncSession, Depends(db_helper.session_getter)],
 ) -> WorkspaceMember:
+    """
+    ### Эндпоинт удаления члена рабочего пространства по ID.
+    \nИнформацию о члене рабочего пространства может удалить только администратор рабочего пространства.
+    \nХотя таблицы `workspace_members`, `submissions` и `queue_members` не связаны внешними ключами, связанная информация удаляется вместе с членом рабочего пространства.
+    """
+
     return await _delete_workspace_member(
         session=session,
         workspace_member_id=id,
