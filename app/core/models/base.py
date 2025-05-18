@@ -1,3 +1,5 @@
+"""Модуль, содержащий реализацию базового класса сущности."""
+
 from sqlalchemy import MetaData
 from sqlalchemy.ext.asyncio import AsyncAttrs
 from sqlalchemy.orm import (
@@ -11,6 +13,15 @@ from core.config import settings
 
 
 def camel_case_to_snake_case(input_str: str) -> str:
+    """
+    Функция, которая преобразует CamelCase в snake_case.
+
+    Используется для создания имени таблицы.
+
+    :param input_str: входная строка в CamelCase
+    :return: строка приведенная к snake_case
+    """
+
     chars = []
     for c_idx, char in enumerate(input_str):
         if c_idx and char.isupper():
@@ -26,6 +37,8 @@ def camel_case_to_snake_case(input_str: str) -> str:
 
 
 class Base(AsyncAttrs, DeclarativeBase):
+    """Базовый класс сущностей."""
+
     __abstract__ = True
 
     metadata = MetaData(naming_convention=settings.db.naming_convention)
@@ -38,6 +51,8 @@ class Base(AsyncAttrs, DeclarativeBase):
     id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
 
     def to_dict(self, cast=False):
+        """Метод, собирающий словарь из атрибутов сущности."""
+
         if not cast:
             return {
                 c.name: getattr(self, c.name)

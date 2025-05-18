@@ -1,3 +1,5 @@
+"""Пакет, содержащий модели базы данных."""
+
 from .base import Base
 from .db_setup import db_helper
 from .entities import (
