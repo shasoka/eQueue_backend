@@ -231,22 +231,36 @@ async def get_workspace_member_by_user_id_and_workspace_id(
 async def get_workspace_member_by_id(
     session: AsyncSession,
     workspace_member_id: int,
+    check_membership: bool = False,
+    current_user_id: Optional[int] = None,
 ) -> Optional[WorkspaceMember]:
     """
     Функция, возвращающая члена рабочего пространства по его id.
 
     :param session: сессия подключения к БД
     :param workspace_member_id: id члена рабочего пространства
+    :param check_membership: флаг, определяющий будет ли произведена проверка
+        является ли пользователь членом рабочего пространства
+    :param current_user_id: id текущего авторизованного пользователя
     :return: член рабочего пространства, если он существует, иначе None
 
     :raises NoEntityFoundException: если член рабочего пространства не
         найден
+    :raises UserIsNotWorkspaceAdminException: если пользователь не является
+        членом рабочего пространства
     """
 
     if workspace_member := await session.get(
         WorkspaceMember,
         workspace_member_id,
     ):
+        if check_membership:
+            # noinspection PyTypeChecker
+            await check_if_user_is_workspace_member(
+                session=session,
+                user_id=current_user_id,
+                workspace_id=workspace_member.workspace_id,
+            )
         return workspace_member
     raise NoEntityFoundException(
         f"Член рабочего пространства с "

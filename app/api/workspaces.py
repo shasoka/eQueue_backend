@@ -1,9 +1,6 @@
 from typing import Annotated, Optional
 
-from fastapi import (
-    APIRouter,
-    Depends,
-)
+from fastapi import APIRouter, Depends, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from core.config import settings
@@ -20,6 +17,7 @@ from crud.workspaces import (
     update_workspace,
     get_workspaces_which_user_is_member_of as _get_workspaces_which_user_is_member_of,
 )
+from docs import generate_responses_for_swagger
 from moodle.auth import get_current_user
 
 __all__ = ("router",)
@@ -27,7 +25,17 @@ __all__ = ("router",)
 router = APIRouter()
 
 
-@router.post("", response_model=WorkspaceRead)
+@router.post(
+    "",
+    response_model=WorkspaceRead,
+    responses=generate_responses_for_swagger(
+        codes=(
+            status.HTTP_401_UNAUTHORIZED,
+            status.HTTP_403_FORBIDDEN,
+            status.HTTP_409_CONFLICT,
+        )
+    ),
+)
 async def create_workspace(
     workspace_in: WorkspaceCreate,
     current_user: Annotated[User, Depends(get_current_user)],
@@ -43,6 +51,9 @@ async def create_workspace(
 @router.get(
     settings.api.workspaces.subscribed,
     response_model=list[WorkspaceRead],
+    responses=generate_responses_for_swagger(
+        codes=(status.HTTP_401_UNAUTHORIZED,)
+    ),
 )
 async def get_workspaces_which_user_is_member_of(
     current_user: Annotated[User, Depends(get_current_user)],
@@ -54,7 +65,16 @@ async def get_workspaces_which_user_is_member_of(
     )
 
 
-@router.get("/{id}", response_model=WorkspaceRead)
+@router.get(
+    "/{id}",
+    response_model=WorkspaceRead,
+    responses=generate_responses_for_swagger(
+        codes=(
+            status.HTTP_401_UNAUTHORIZED,
+            status.HTTP_404_NOT_FOUND,
+        )
+    ),
+)
 async def get_workspace_by_id(
     id: int,
     _: Annotated[User, Depends(get_current_user)],
@@ -67,21 +87,43 @@ async def get_workspace_by_id(
     )
 
 
-@router.patch("/{id}", response_model=WorkspaceRead)
+@router.patch(
+    "/{id}",
+    response_model=WorkspaceRead,
+    responses=generate_responses_for_swagger(
+        codes=(
+            status.HTTP_401_UNAUTHORIZED,
+            status.HTTP_403_FORBIDDEN,
+            status.HTTP_404_NOT_FOUND,
+            status.HTTP_409_CONFLICT,
+        )
+    ),
+)
 async def partial_update_workspace(
     id: int,
     workspace_upd: WorkspaceUpdate,
-    _: Annotated[User, Depends(get_current_user)],
+    current_user: Annotated[User, Depends(get_current_user)],
     session: Annotated[AsyncSession, Depends(db_helper.session_getter)],
 ) -> WorkspaceRead:
     return await update_workspace(
         session=session,
         workspace_upd=workspace_upd,
         workspace_id=id,
+        current_user_id=current_user.id,
     )
 
 
-@router.delete("/{id}", response_model=WorkspaceRead)
+@router.delete(
+    "/{id}",
+    response_model=WorkspaceRead,
+    responses=generate_responses_for_swagger(
+        codes=(
+            status.HTTP_401_UNAUTHORIZED,
+            status.HTTP_403_FORBIDDEN,
+            status.HTTP_404_NOT_FOUND,
+        )
+    ),
+)
 async def delete_workspace(
     id: int,
     current_user: Annotated[User, Depends(get_current_user)],

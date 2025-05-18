@@ -1,6 +1,6 @@
 from typing import Annotated, Literal, Optional
 
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from core.config import settings
@@ -11,6 +11,7 @@ from core.schemas.workspace_members import (
     WorkspaceMemberRead,
     WorkspaceMemberUpdate,
 )
+from docs import generate_responses_for_swagger
 from moodle.auth import get_current_user
 from crud.workspace_members import (
     create_workspace_member as _create_workspace_member,
@@ -26,7 +27,16 @@ __all__ = ("router",)
 router = APIRouter()
 
 
-@router.post("/{wid}", response_model=WorkspaceMemberRead)
+@router.post(
+    "/{wid}",
+    response_model=WorkspaceMemberRead,
+    responses=generate_responses_for_swagger(
+        codes=(
+            status.HTTP_401_UNAUTHORIZED,
+            status.HTTP_409_CONFLICT,
+        )
+    ),
+)
 async def create_workspace_member(
     wid: int,
     current_user: Annotated[User, Depends(get_current_user)],
@@ -46,10 +56,17 @@ async def create_workspace_member(
 @router.get(
     settings.api.workspace_members.all + "/{id}/{status}",
     response_model=list[WorkspaceMemberRead],
+    responses=generate_responses_for_swagger(
+        codes=(
+            status.HTTP_401_UNAUTHORIZED,
+            status.HTTP_403_FORBIDDEN,
+            status.HTTP_409_CONFLICT,
+        )
+    ),
 )
 async def get_workspace_members_by_workspace_id_and_status(
     id: int,
-    status: Literal["approved", "pending", "rejected", "*"],
+    member_status: Literal["approved", "pending", "rejected", "*"],
     current_user: Annotated[User, Depends(get_current_user)],
     session: Annotated[AsyncSession, Depends(db_helper.session_getter)],
 ) -> list[WorkspaceMember]:
@@ -57,13 +74,20 @@ async def get_workspace_members_by_workspace_id_and_status(
         session=session,
         workspace_id=id,
         user_id=current_user.id,
-        status=status,
+        status=member_status,
     )
 
 
 @router.get(
     settings.api.workspace_members.leaderboard + "/{wid}",
     response_model=list[WorkspaceMemberLeaderboardEntry],
+    responses=generate_responses_for_swagger(
+        codes=(
+            status.HTTP_401_UNAUTHORIZED,
+            status.HTTP_403_FORBIDDEN,
+            status.HTTP_409_CONFLICT,
+        )
+    ),
 )
 async def get_workspace_leaderboard_by_subject(
     wid: int,
@@ -81,18 +105,41 @@ async def get_workspace_leaderboard_by_subject(
     )
 
 
-@router.get("/{id}", response_model=WorkspaceMemberRead)
+@router.get(
+    "/{id}",
+    response_model=WorkspaceMemberRead,
+    responses=generate_responses_for_swagger(
+        codes=(
+            status.HTTP_401_UNAUTHORIZED,
+            status.HTTP_403_FORBIDDEN,
+            status.HTTP_404_NOT_FOUND,
+        )
+    ),
+)
 async def get_workspace_member_by_id(
     id: int,
-    _: Annotated[User, Depends(get_current_user)],
+    current_user: Annotated[User, Depends(get_current_user)],
     session: Annotated[AsyncSession, Depends(db_helper.session_getter)],
 ) -> WorkspaceMember:
     return await _get_workspace_member_by_id(
-        session=session, workspace_member_id=id
+        session=session,
+        workspace_member_id=id,
+        check_membership=True,
+        current_user_id=current_user.id,
     )
 
 
-@router.patch("/{id}", response_model=WorkspaceMemberRead)
+@router.patch(
+    "/{id}",
+    response_model=WorkspaceMemberRead,
+    responses=generate_responses_for_swagger(
+        codes=(
+            status.HTTP_401_UNAUTHORIZED,
+            status.HTTP_403_FORBIDDEN,
+            status.HTTP_404_NOT_FOUND,
+        )
+    ),
+)
 async def partial_update_workspace_member(
     id: int,
     current_user: Annotated[User, Depends(get_current_user)],
@@ -107,7 +154,17 @@ async def partial_update_workspace_member(
     )
 
 
-@router.delete("/id", response_model=WorkspaceMemberRead)
+@router.delete(
+    "/id",
+    response_model=WorkspaceMemberRead,
+    responses=generate_responses_for_swagger(
+        codes=(
+            status.HTTP_401_UNAUTHORIZED,
+            status.HTTP_403_FORBIDDEN,
+            status.HTTP_404_NOT_FOUND,
+        )
+    ),
+)
 async def delete_workspace_member(
     id: int,
     current_user: Annotated[User, Depends(get_current_user)],

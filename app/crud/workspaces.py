@@ -300,6 +300,7 @@ async def update_workspace(
     session: AsyncSession,
     workspace_upd: WorkspaceUpdate,
     workspace_id: int,
+    current_user_id: int,
 ) -> Optional[WorkspaceRead]:
     """
     Функция, обновляющая рабочее пространство.
@@ -307,11 +308,14 @@ async def update_workspace(
     :param session: сессия подключения к БД
     :param workspace_upd: объект pydantic-модели WorkspaceUpdate
     :param workspace_id: id рабочего пространства
+    :param current_user_id: id текущего пользователя
     :return: обновленное рабочее пространство
 
     :raises NoEntityFoundException: если рабочее пространство не существует
     :raises UniqueViolationException: если пришло имя, которое уже занято в
         рамках группы
+    :raises UserIsNotWorkspaceAdminException: если пользователь не является
+        администратором рабочего пространства
     """
 
     # Работаем с orm- и pydantic-моделями из-за динамического поля semester
@@ -330,6 +334,16 @@ async def update_workspace(
     workspace_orm_model: Workspace = await session.get(Workspace, workspace_id)
 
     # --- Ограничения уникальности ---
+
+    # Проверка, что пользователь является администратором рабочего пространства
+    # Во избежание циклического импорта
+    from .workspace_members import check_if_user_is_workspace_admin
+
+    await check_if_user_is_workspace_admin(
+        session,
+        current_user_id,
+        workspace_id,
+    )
 
     # Проверка пришедшего имени на уникальность в рамках данной группы
     if (

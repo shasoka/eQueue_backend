@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, status
 from sqlalchemy.ext.asyncio import AsyncSession
 from typing import Annotated
 
@@ -10,6 +10,7 @@ from crud.queues import (
     get_queue_by_subject_id as _get_queue_by_subject_id,
     update_queue,
 )
+from docs import generate_responses_for_swagger
 from moodle.auth import get_current_user
 
 __all__ = ("router",)
@@ -17,7 +18,17 @@ __all__ = ("router",)
 router = APIRouter()
 
 
-@router.post("", response_model=QueueRead)
+@router.post(
+    "",
+    response_model=QueueRead,
+    responses=generate_responses_for_swagger(
+        codes=(
+            status.HTTP_401_UNAUTHORIZED,
+            status.HTTP_403_FORBIDDEN,
+            status.HTTP_409_CONFLICT,
+        )
+    ),
+)
 async def create_queue(
     queue_in: QueueCreate,
     session: Annotated[AsyncSession, Depends(db_helper.session_getter)],
@@ -30,7 +41,17 @@ async def create_queue(
     )
 
 
-@router.get("/{sid}", response_model=QueueRead)
+@router.get(
+    "/{sid}",
+    response_model=QueueRead,
+    responses=generate_responses_for_swagger(
+        codes=(
+            status.HTTP_401_UNAUTHORIZED,
+            status.HTTP_403_FORBIDDEN,
+            status.HTTP_404_NOT_FOUND,
+        )
+    ),
+)
 async def get_queue_by_subject_id(
     sid: int,
     current_user: Annotated[User, Depends(get_current_user)],
@@ -45,7 +66,18 @@ async def get_queue_by_subject_id(
     )
 
 
-@router.patch("/{sid}", response_model=QueueRead)
+@router.patch(
+    "/{sid}",
+    response_model=QueueRead,
+    responses=generate_responses_for_swagger(
+        codes=(
+            status.HTTP_401_UNAUTHORIZED,
+            status.HTTP_403_FORBIDDEN,
+            status.HTTP_404_NOT_FOUND,
+            status.HTTP_409_CONFLICT,
+        )
+    ),
+)
 async def update_queue_by_subject_id(
     sid: int,
     queue_upd: QueueUpdate,
@@ -60,7 +92,18 @@ async def update_queue_by_subject_id(
     )
 
 
-@router.delete("/{sid}", response_model=QueueRead)
+@router.delete(
+    "/{sid}",
+    response_model=QueueRead,
+    responses=generate_responses_for_swagger(
+        codes=(
+            status.HTTP_401_UNAUTHORIZED,
+            status.HTTP_403_FORBIDDEN,
+            status.HTTP_404_NOT_FOUND,
+            status.HTTP_409_CONFLICT,
+        )
+    ),
+)
 async def delete_queue_by_subject_id(
     sid: int,
     current_user: Annotated[User, Depends(get_current_user)],

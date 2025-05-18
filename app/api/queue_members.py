@@ -1,5 +1,8 @@
 from typing import Annotated
 
+from fastapi import APIRouter, Depends, status
+from sqlalchemy.ext.asyncio import AsyncSession
+
 from core.config import settings
 from core.models import db_helper, QueueMember, User
 from core.schemas.queue_members import QueueMemberRead
@@ -8,16 +11,25 @@ from crud.queue_members import (
     leave_queue_by_user_id_and_queue_id,
     switch_queue_member_status_by_user_id_and_queue_id,
 )
-from fastapi import APIRouter, Depends
+from docs import generate_responses_for_swagger
 from moodle.auth import get_current_user
-from sqlalchemy.ext.asyncio import AsyncSession
 
 __all__ = ("router",)
 
 router = APIRouter()
 
 
-@router.post("/{qid}", response_model=QueueMemberRead)
+@router.post(
+    "/{qid}",
+    response_model=QueueMemberRead,
+    responses=generate_responses_for_swagger(
+        codes=(
+            status.HTTP_401_UNAUTHORIZED,
+            status.HTTP_403_FORBIDDEN,
+            status.HTTP_409_CONFLICT,
+        )
+    ),
+)
 async def create_queue_member(
     qid: int,
     session: Annotated[AsyncSession, Depends(db_helper.session_getter)],
@@ -30,7 +42,18 @@ async def create_queue_member(
     )
 
 
-@router.patch("/{qid}", response_model=QueueMemberRead)
+@router.patch(
+    "/{qid}",
+    response_model=QueueMemberRead,
+    responses=generate_responses_for_swagger(
+        codes=(
+            status.HTTP_401_UNAUTHORIZED,
+            status.HTTP_403_FORBIDDEN,
+            status.HTTP_404_NOT_FOUND,
+            status.HTTP_409_CONFLICT,
+        )
+    ),
+)
 async def partial_update_queue_member(
     qid: int,
     current_user: Annotated[User, Depends(get_current_user)],
@@ -43,7 +66,18 @@ async def partial_update_queue_member(
     )
 
 
-@router.delete("/{qid}", response_model=QueueMemberRead)
+@router.delete(
+    "/{qid}",
+    response_model=QueueMemberRead,
+    responses=generate_responses_for_swagger(
+        codes=(
+            status.HTTP_401_UNAUTHORIZED,
+            status.HTTP_403_FORBIDDEN,
+            status.HTTP_404_NOT_FOUND,
+            status.HTTP_409_CONFLICT,
+        )
+    ),
+)
 async def delete_queue_member(
     qid: int,
     current_user: Annotated[User, Depends(get_current_user)],
@@ -59,6 +93,14 @@ async def delete_queue_member(
 @router.delete(
     settings.api.queue_members.leave_and_mark + "/{qid}",
     response_model=QueueMemberRead,
+    responses=generate_responses_for_swagger(
+        codes=(
+            status.HTTP_401_UNAUTHORIZED,
+            status.HTTP_403_FORBIDDEN,
+            status.HTTP_404_NOT_FOUND,
+            status.HTTP_409_CONFLICT,
+        )
+    ),
 )
 async def delete_queue_member_and_submit_nearest_task(
     qid: int,

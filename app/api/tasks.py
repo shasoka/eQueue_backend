@@ -1,6 +1,6 @@
 from typing import Annotated, Optional
 
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from core.config import settings
@@ -21,6 +21,7 @@ from crud.tasks import (
     get_tasks_from_ecourses,
     update_task,
 )
+from docs import generate_responses_for_swagger
 
 from moodle.auth import get_current_user
 
@@ -29,7 +30,17 @@ __all__ = ("router",)
 router = APIRouter()
 
 
-@router.post("/{sid}", response_model=list[TaskRead])
+@router.post(
+    "/{sid}",
+    response_model=list[TaskRead],
+    responses=generate_responses_for_swagger(
+        codes=(
+            status.HTTP_401_UNAUTHORIZED,
+            status.HTTP_403_FORBIDDEN,
+            status.HTTP_409_CONFLICT,
+        )
+    ),
+)
 async def create_tasks(
     sid: int,
     tasks_in: list[TaskCreate],
@@ -47,6 +58,13 @@ async def create_tasks(
 @router.get(
     settings.api.tasks.from_ecourses + "/{sid}",
     response_model=list[TaskCreate],
+    responses=generate_responses_for_swagger(
+        codes=(
+            status.HTTP_401_UNAUTHORIZED,
+            status.HTTP_403_FORBIDDEN,
+            status.HTTP_404_NOT_FOUND,
+        )
+    ),
 )
 async def get_tasks_for_subject_from_ecourses(
     sid: int,
@@ -63,6 +81,13 @@ async def get_tasks_for_subject_from_ecourses(
 @router.get(
     settings.api.tasks.from_subject + "/{sid}",
     response_model=list[TaskRead],
+    responses=generate_responses_for_swagger(
+        codes=(
+            status.HTTP_401_UNAUTHORIZED,
+            status.HTTP_403_FORBIDDEN,
+            status.HTTP_404_NOT_FOUND,
+        )
+    ),
 )
 async def get_tasks_by_subject_id(
     sid: int,
@@ -79,6 +104,13 @@ async def get_tasks_by_subject_id(
 @router.get(
     settings.api.tasks.from_subject_with_submissions + "/{sid}",
     response_model=list[TaskReadWithSubmission],
+    responses=generate_responses_for_swagger(
+        codes=(
+            status.HTTP_401_UNAUTHORIZED,
+            status.HTTP_403_FORBIDDEN,
+            status.HTTP_404_NOT_FOUND,
+        )
+    ),
 )
 async def get_tasks_by_subject_id_with_submissions(
     sid: int,
@@ -92,7 +124,17 @@ async def get_tasks_by_subject_id_with_submissions(
     )
 
 
-@router.get("/{id}", response_model=TaskRead)
+@router.get(
+    "/{id}",
+    response_model=TaskRead,
+    responses=generate_responses_for_swagger(
+        codes=(
+            status.HTTP_401_UNAUTHORIZED,
+            status.HTTP_403_FORBIDDEN,
+            status.HTTP_404_NOT_FOUND,
+        )
+    ),
+)
 async def get_task_by_id(
     id: int,
     current_user: Annotated[User, Depends(get_current_user)],
@@ -107,7 +149,18 @@ async def get_task_by_id(
     )
 
 
-@router.patch("/{id}", response_model=TaskRead)
+@router.patch(
+    "/{id}",
+    response_model=TaskRead,
+    responses=generate_responses_for_swagger(
+        codes=(
+            status.HTTP_401_UNAUTHORIZED,
+            status.HTTP_403_FORBIDDEN,
+            status.HTTP_404_NOT_FOUND,
+            status.HTTP_409_CONFLICT,
+        )
+    ),
+)
 async def partial_update_task(
     id: int,
     task_upd: TaskUpdate,
@@ -122,7 +175,17 @@ async def partial_update_task(
     )
 
 
-@router.delete("/{id}", response_model=TaskRead)
+@router.delete(
+    "/{id}",
+    response_model=TaskRead,
+    responses=generate_responses_for_swagger(
+        codes=(
+            status.HTTP_401_UNAUTHORIZED,
+            status.HTTP_403_FORBIDDEN,
+            status.HTTP_404_NOT_FOUND,
+        )
+    ),
+)
 async def delete_task(
     id: int,
     current_user: Annotated[User, Depends(get_current_user)],

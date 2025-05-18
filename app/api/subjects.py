@@ -1,5 +1,8 @@
 from typing import Annotated
 
+from fastapi import APIRouter, Depends, status
+from sqlalchemy.ext.asyncio import AsyncSession
+
 from core.config import settings
 from core.models import db_helper, Subject, User
 from core.schemas.subjects import SubjectCreate, SubjectRead, SubjectUpdate
@@ -10,17 +13,26 @@ from crud.subjects import (
     get_subjects_by_workspace_id as _get_subjects_by_workspace_id,
     update_subject,
 )
-from fastapi import APIRouter, Depends
+from docs import generate_responses_for_swagger
 from moodle.auth import get_current_user
 from moodle.subjects.requests import get_user_enrolled_courses
-from sqlalchemy.ext.asyncio import AsyncSession
 
 __all__ = ("router",)
 
 router = APIRouter()
 
 
-@router.post("/{wid}", response_model=list[SubjectRead])
+@router.post(
+    "/{wid}",
+    response_model=list[SubjectRead],
+    responses=generate_responses_for_swagger(
+        codes=(
+            status.HTTP_401_UNAUTHORIZED,
+            status.HTTP_403_FORBIDDEN,
+            status.HTTP_409_CONFLICT,
+        )
+    ),
+)
 async def create_subjects(
     wid: int,
     subjects_in: list[SubjectCreate],
@@ -38,6 +50,13 @@ async def create_subjects(
 @router.get(
     settings.api.subjects.from_worksapce + "/{wid}",
     response_model=list[SubjectRead],
+    responses=generate_responses_for_swagger(
+        codes=(
+            status.HTTP_401_UNAUTHORIZED,
+            status.HTTP_403_FORBIDDEN,
+            status.HTTP_409_CONFLICT,
+        )
+    ),
 )
 async def get_subjects_by_workspace_id(
     wid: int,
@@ -55,6 +74,13 @@ async def get_subjects_by_workspace_id(
 @router.get(
     settings.api.subjects.from_ecourses + "/{wid}",
     response_model=list[SubjectCreate],
+    responses=generate_responses_for_swagger(
+        codes=(
+            status.HTTP_401_UNAUTHORIZED,
+            status.HTTP_403_FORBIDDEN,
+            status.HTTP_409_CONFLICT,
+        )
+    ),
 )
 async def get_enrolled_courses(
     wid: int,
@@ -68,7 +94,17 @@ async def get_enrolled_courses(
     )
 
 
-@router.get("/{id}", response_model=SubjectRead)
+@router.get(
+    "/{id}",
+    response_model=SubjectRead,
+    responses=generate_responses_for_swagger(
+        codes=(
+            status.HTTP_401_UNAUTHORIZED,
+            status.HTTP_403_FORBIDDEN,
+            status.HTTP_404_NOT_FOUND,
+        )
+    ),
+)
 async def get_subject_by_id(
     id: int,
     current_user: Annotated[User, Depends(get_current_user)],
@@ -83,7 +119,18 @@ async def get_subject_by_id(
     )
 
 
-@router.patch("/{id}", response_model=SubjectRead)
+@router.patch(
+    "/{id}",
+    response_model=SubjectRead,
+    responses=generate_responses_for_swagger(
+        codes=(
+            status.HTTP_401_UNAUTHORIZED,
+            status.HTTP_403_FORBIDDEN,
+            status.HTTP_404_NOT_FOUND,
+            status.HTTP_409_CONFLICT,
+        )
+    ),
+)
 async def partial_update_subject(
     id: int,
     subject_upd: SubjectUpdate,
@@ -98,7 +145,17 @@ async def partial_update_subject(
     )
 
 
-@router.delete("/{id}", response_model=SubjectRead)
+@router.delete(
+    "/{id}",
+    response_model=SubjectRead,
+    responses=generate_responses_for_swagger(
+        codes=(
+            status.HTTP_401_UNAUTHORIZED,
+            status.HTTP_403_FORBIDDEN,
+            status.HTTP_404_NOT_FOUND,
+        )
+    ),
+)
 async def delete_subject(
     id: int,
     current_user: Annotated[User, Depends(get_current_user)],
