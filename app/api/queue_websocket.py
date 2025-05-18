@@ -1,3 +1,5 @@
+"""Модуль, реализующий эндпоинты для работы с вебсокетами."""
+
 import json
 from typing import Annotated
 
@@ -22,7 +24,11 @@ __all__ = (
 
 
 class ConnectionManager:
+    """Класс для управления активными соединениями."""
+
     def __init__(self) -> None:
+        """Инициализация класса."""
+
         # Активные соединения - словарь, где ключ - queue_id, значение -
         # список соединений (пользователей, просматривающих очередь)
         self.active_connections: dict[int, list[WebSocket]] = {}
@@ -32,6 +38,13 @@ class ConnectionManager:
         websocket: WebSocket,
         queue_id: int,
     ) -> None:
+        """
+        Метод подключения пользователя к сокету.
+
+        :param websocket: объект WebSocket
+        :param queue_id: id очереди
+        """
+
         await websocket.accept()
         if queue_id not in self.active_connections:
             self.active_connections[queue_id] = []
@@ -42,6 +55,13 @@ class ConnectionManager:
         websocket: WebSocket,
         queue_id: int,
     ) -> None:
+        """
+        Метод отключения пользователя от сокета.
+
+        :param websocket: объект WebSocket
+        :param queue_id: id очереди
+        """
+
         self.active_connections[queue_id].remove(websocket)
         if not self.active_connections[queue_id]:
             del self.active_connections[queue_id]
@@ -51,6 +71,13 @@ class ConnectionManager:
         message: str | dict | list,
         websocket: WebSocket,
     ) -> None:
+        """
+        Метод отправки сообщения пользователю.
+
+        :param message: json-сообщение
+        :param websocket: объект WebSocket
+        """
+
         await websocket.send_text(
             json.dumps(
                 message,
@@ -64,6 +91,13 @@ class ConnectionManager:
         message: str | dict | list,
         queue_id: int,
     ) -> None:
+        """
+        Метод отправки сообщения всем подписчикам сокета.
+
+        :param message: json-сообщение
+        :param queue_id: id очереди
+        """
+
         if queue_id in self.active_connections:
             for connection in self.active_connections[queue_id]:
                 await connection.send_text(
@@ -79,6 +113,13 @@ class ConnectionManager:
         session: AsyncSession,
         queue_id: int,
     ) -> None:
+        """
+        Метод уведомления подписчиков об обновлении очереди.
+
+        :param session: сессия подключения к БД
+        :param queue_id: id очереди
+        """
+
         # Получение нового состояния очереди
         updated_queue: list[dict] = await get_queue_for_ws_message(
             session=session,
@@ -107,6 +148,20 @@ async def websocket_endpoint(
     token: Annotated[str, Query(...)],
     session: Annotated[AsyncSession, Depends(db_helper.session_getter)],
 ) -> None:
+    """
+    Эндпоинт подключения к вебсокету.
+
+    :param websocket: объект WebSocket
+    :param queue_id: id очереди
+    :param token: access_token пользователя
+    :param session: сессия подключения к БД
+
+    :raises UnexpectedWebsocketException: если произошла ошибка вебсокета
+    :raises ForeignKeyViolationException: если очередь с таким id не существует
+    :raises UserIsNotWorkspaceAdminException: если пользователь не является
+        администратором рабочего пространства
+    """
+
     # Получение текущего пользователя для проверки авторизации
     current_user = await MoodleOAuth2.validate_access_token(
         access_token=token,
