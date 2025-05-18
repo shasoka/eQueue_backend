@@ -6,6 +6,8 @@ services:
     container_name: equeue_backend
     ports:
       - "8000:8000"
+    volumes:
+      - .:/backend
     depends_on:
       db:
         condition: service_healthy

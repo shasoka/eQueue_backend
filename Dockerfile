@@ -5,7 +5,7 @@ WORKDIR /backend
 COPY pyproject.toml poetry.lock ./
 
 RUN pip install --upgrade pip && \
-    pip install poetry==2.1.3
+    pip install poetry==1.8.3
 
 RUN poetry config virtualenvs.create false && \
     poetry install --only main --no-interaction --no-ansi
