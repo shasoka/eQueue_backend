@@ -33,6 +33,7 @@ router = APIRouter()
 @router.post(
     "/{sid}",
     response_model=list[TaskRead],
+    summary="Создание заданий",
     responses=generate_responses_for_swagger(
         codes=(
             status.HTTP_401_UNAUTHORIZED,
@@ -47,6 +48,13 @@ async def create_tasks(
     current_user: Annotated[User, Depends(get_current_user)],
     session: Annotated[AsyncSession, Depends(db_helper.session_getter)],
 ) -> list[Task]:
+    """
+    ### Эндпоинт создания заданий.
+    \nСоздавать задания может только администратор рабочего пространства.
+    \nЗадания всегда создаются списком, даже если задание всего одно.
+    \nВозвращает список созданных заданий, если таковые имеются. Задания, которые по каким-либо предметам не могут быть созданы пропускаются.
+    """
+
     return await _create_tasks(
         session=session,
         tasks_in=tasks_in,
@@ -58,6 +66,7 @@ async def create_tasks(
 @router.get(
     settings.api.tasks.from_ecourses + "/{sid}",
     response_model=list[TaskCreate],
+    summary="Получение заданий с еКурсов",
     responses=generate_responses_for_swagger(
         codes=(
             status.HTTP_401_UNAUTHORIZED,
@@ -71,6 +80,13 @@ async def get_tasks_for_subject_from_ecourses(
     current_user: Annotated[User, Depends(get_current_user)],
     session: Annotated[AsyncSession, Depends(db_helper.session_getter)],
 ) -> list[TaskCreate]:
+    """
+    ### Эндпоинт получения заданий с еКурсов.
+    \nЗапрашивать задания может только администратор рабочего пространства.
+    \nЗадания могут быть получены при помощи эндпоинта REST API еКурсов: ***https://e.sfu-kras.ru/webservice/rest/server.php?wstoken=%s&wsfunction=core_course_get_contents&moodlewsrestformat=json&courseid=%s***.
+    \nЗаданиями считаются элементы курса, помеченные [данной](https://e.sfu-kras.ru/theme/image.php/moove/assign/1747526452/icon) иконкой.
+    """
+
     return await get_tasks_from_ecourses(
         session=session,
         target_subject_id=sid,
@@ -81,6 +97,7 @@ async def get_tasks_for_subject_from_ecourses(
 @router.get(
     settings.api.tasks.from_subject + "/{sid}",
     response_model=list[TaskRead],
+    summary="Получение заданий по ID предмета",
     responses=generate_responses_for_swagger(
         codes=(
             status.HTTP_401_UNAUTHORIZED,
@@ -94,6 +111,11 @@ async def get_tasks_by_subject_id(
     current_user: Annotated[User, Depends(get_current_user)],
     session: Annotated[AsyncSession, Depends(db_helper.session_getter)],
 ) -> list[Task]:
+    """
+    ### Эндпоинт получения заданий по ID предмета.
+    \nЗапрашивать задания может только член рабочего пространства.
+    """
+
     return await _get_tasks_by_subject_id(
         session=session,
         subject_id=sid,
@@ -104,6 +126,7 @@ async def get_tasks_by_subject_id(
 @router.get(
     settings.api.tasks.from_subject_with_submissions + "/{sid}",
     response_model=list[TaskReadWithSubmission],
+    summary="Получение заданий с фактом их сдачи текущим пользователем по ID предмета",
     responses=generate_responses_for_swagger(
         codes=(
             status.HTTP_401_UNAUTHORIZED,
@@ -117,6 +140,11 @@ async def get_tasks_by_subject_id_with_submissions(
     current_user: Annotated[User, Depends(get_current_user)],
     session: Annotated[AsyncSession, Depends(db_helper.session_getter)],
 ) -> list[TaskReadWithSubmission]:
+    """
+    ### Эндпоинт получения заданий с фактом их сдачи текущим пользователем по ID предмета.
+    \nЗапрашивать задания может только член рабочего пространства.
+    """
+
     return await _get_tasks_by_subject_id_with_submissions(
         session=session,
         subject_id=sid,
@@ -127,6 +155,7 @@ async def get_tasks_by_subject_id_with_submissions(
 @router.get(
     "/{id}",
     response_model=TaskRead,
+    summary="Получение задания по ID",
     responses=generate_responses_for_swagger(
         codes=(
             status.HTTP_401_UNAUTHORIZED,
@@ -140,6 +169,11 @@ async def get_task_by_id(
     current_user: Annotated[User, Depends(get_current_user)],
     session: Annotated[AsyncSession, Depends(db_helper.session_getter)],
 ) -> Optional[Task]:
+    """
+    ### Эндпоинт получения задания по ID.
+    \nЗапрашивать задания может только член рабочего пространства.
+    """
+
     return await _get_task_by_id(
         session=session,
         task_id=id,
@@ -152,6 +186,7 @@ async def get_task_by_id(
 @router.patch(
     "/{id}",
     response_model=TaskRead,
+    summary="Обновление задания по ID",
     responses=generate_responses_for_swagger(
         codes=(
             status.HTTP_401_UNAUTHORIZED,
@@ -167,6 +202,11 @@ async def partial_update_task(
     current_user: Annotated[User, Depends(get_current_user)],
     session: Annotated[AsyncSession, Depends(db_helper.session_getter)],
 ) -> Task:
+    """
+    ### Эндпоинт обновления задания по ID.
+    \nОбновлять задания может только администратор рабочего пространства.
+    """
+
     return await update_task(
         session=session,
         task_upd=task_upd,
@@ -178,6 +218,7 @@ async def partial_update_task(
 @router.delete(
     "/{id}",
     response_model=TaskRead,
+    summary="Удаление задания по ID",
     responses=generate_responses_for_swagger(
         codes=(
             status.HTTP_401_UNAUTHORIZED,
@@ -191,6 +232,11 @@ async def delete_task(
     current_user: Annotated[User, Depends(get_current_user)],
     session: Annotated[AsyncSession, Depends(db_helper.session_getter)],
 ) -> Task:
+    """
+    ### Эндпоинт удаления задания по ID.
+    \nУдалять задания может только администратор рабочего пространства.
+    """
+
     return await _delete_task(
         session=session,
         task_id=id,
