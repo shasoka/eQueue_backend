@@ -1,3 +1,5 @@
+"""Модуль, реализующий функцию регистрации middlewares в FastAPI-приложении."""
+
 import time
 import uuid
 from typing import Awaitable, Callable
@@ -17,6 +19,8 @@ def register_middlewares(app: FastAPI) -> None:
         request: Request,
         call_next: Callable[[Request], Awaitable[Response]],
     ) -> Response:
+        """Middleware, вычисляющий время выполнения запроса."""
+
         start_time: float = time.perf_counter()
         response: Response = await call_next(request)
         proc_time: float = time.perf_counter() - start_time
@@ -29,6 +33,7 @@ def register_middlewares(app: FastAPI) -> None:
         request: Request,
         call_next: Callable[[Request], Awaitable[Response]],
     ) -> Response:
+        """Middleware, выполняющий логирование входящих запросов."""
 
         # Генерация uid для различения запросов
         chain_uuid: uuid.UUID = uuid.uuid4()

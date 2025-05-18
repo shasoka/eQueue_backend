@@ -1,3 +1,5 @@
+"""Модуль, реализующий создание логгера."""
+
 import logging
 from pathlib import Path
 
