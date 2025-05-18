@@ -21,6 +21,7 @@ router = APIRouter()
 @router.post(
     "",
     response_model=QueueRead,
+    summary="Создание очереди",
     responses=generate_responses_for_swagger(
         codes=(
             status.HTTP_401_UNAUTHORIZED,
@@ -34,6 +35,11 @@ async def create_queue(
     session: Annotated[AsyncSession, Depends(db_helper.session_getter)],
     current_user: Annotated[User, Depends(get_current_user)],
 ) -> Queue:
+    """
+    ### Эндпоинт создания очереди.
+    \nСоздать очередь может только член рабочего пространства.
+    """
+
     return await _create_queue(
         session=session,
         current_user_id=current_user.id,
@@ -44,6 +50,7 @@ async def create_queue(
 @router.get(
     "/{sid}",
     response_model=QueueRead,
+    summary="Получение очереди по ID предмета",
     responses=generate_responses_for_swagger(
         codes=(
             status.HTTP_401_UNAUTHORIZED,
@@ -57,6 +64,11 @@ async def get_queue_by_subject_id(
     current_user: Annotated[User, Depends(get_current_user)],
     session: Annotated[AsyncSession, Depends(db_helper.session_getter)],
 ) -> Queue:
+    """
+    ### Эндпоинт получения очереди по ID предмета.
+    \nПолучить очередь может только член рабочего пространства.
+    """
+
     return await _get_queue_by_subject_id(
         session=session,
         subject_id=sid,
@@ -69,6 +81,7 @@ async def get_queue_by_subject_id(
 @router.patch(
     "/{sid}",
     response_model=QueueRead,
+    summary="Обновление очереди",
     responses=generate_responses_for_swagger(
         codes=(
             status.HTTP_401_UNAUTHORIZED,
@@ -84,6 +97,12 @@ async def update_queue_by_subject_id(
     session: Annotated[AsyncSession, Depends(db_helper.session_getter)],
     current_user: Annotated[User, Depends(get_current_user)],
 ) -> Queue:
+    """
+    ### Эндпоинт обновления очереди.
+    \nОбновить очередь может только администратор рабочего пространства.
+    \nОбновлению подлежит только поле `members_can_freeze`.
+    """
+
     return await update_queue(
         session=session,
         queue_upd=queue_upd,
@@ -95,6 +114,7 @@ async def update_queue_by_subject_id(
 @router.delete(
     "/{sid}",
     response_model=QueueRead,
+    summary="Удаление очереди по ID предмета",
     responses=generate_responses_for_swagger(
         codes=(
             status.HTTP_401_UNAUTHORIZED,
@@ -109,6 +129,11 @@ async def delete_queue_by_subject_id(
     current_user: Annotated[User, Depends(get_current_user)],
     session: Annotated[AsyncSession, Depends(db_helper.session_getter)],
 ) -> Queue:
+    """
+    ### Эндпоинт удаления очереди по ID предмета.
+    \nУдалить очередь может только администратор рабочего пространства.
+    """
+
     return await delete_queue(
         session=session,
         subject_id=sid,
