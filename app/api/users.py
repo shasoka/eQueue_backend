@@ -144,6 +144,7 @@ async def am_i_alive(
 @router.get(
     "",
     response_model=UserRead,
+    summary="Получение информации о текущем пользователе",
     responses=generate_responses_for_swagger(
         codes=(
             status.HTTP_401_UNAUTHORIZED,
@@ -155,6 +156,11 @@ async def get_current_user_info(
     current_user: Annotated[User, Depends(get_current_user)],
     session: Annotated[AsyncSession, Depends(db_helper.session_getter)],
 ) -> Optional[UserRead]:
+    """
+    ### Эндпоинт для получения информации о текущем пользователе.
+    \nВозвращает информацию о текущем пользователе, если он авторизован.
+    """
+
     return await _get_user_by_id(
         session=session,
         id=current_user.id,
@@ -165,6 +171,7 @@ async def get_current_user_info(
 @router.patch(
     "",
     response_model=UserRead,
+    summary="Обновление информации о текущем пользователе",
     responses=generate_responses_for_swagger(
         codes=(
             status.HTTP_401_UNAUTHORIZED,
@@ -177,6 +184,12 @@ async def partial_update_current_user(
     current_user: Annotated[User, Depends(get_current_user)],
     session: Annotated[AsyncSession, Depends(db_helper.session_getter)],
 ) -> User:
+    """
+    ### Эндпоинт для обновления информации о текущем пользователе.
+    \nВозвращает обновленную информацию о текущем пользователе.
+    \nОбновлению подлежат поля `access_token`, `group_id`, `profile_status` и `profile_pic_url`.
+    """
+
     return await update_user(
         session=session,
         user=current_user,
@@ -187,6 +200,7 @@ async def partial_update_current_user(
 @router.patch(
     settings.api.users.avatar,
     response_model=UserRead,
+    summary="Обновление аватара пользователя",
     responses=generate_responses_for_swagger(
         codes=(
             status.HTTP_401_UNAUTHORIZED,
@@ -200,6 +214,12 @@ async def upload_avatar(
     session: Annotated[AsyncSession, Depends(db_helper.session_getter)],
     current_user: Annotated[User, Depends(get_current_user)],
 ) -> User:
+    """
+    ### Эндпоинт для загрузки аватара пользователя.
+    \nВозвращает обновленную информацию о текущем пользователе.
+    \nОбновление аватара происходит через REST API еКурсов, для этого используется эндпоинт: ***https://e.sfu-kras.ru/webservice/upload.php?token=%s&filearea=draft***
+    """
+
     new_profile_pic_url: str = await upload_new_profile_avatar(
         token=current_user.access_token,
         files={
