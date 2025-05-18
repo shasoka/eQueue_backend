@@ -1,3 +1,8 @@
-from .docs_from_json import login_user_docs
+"""
+Пакет, содержащий описания ответов эндпоинтов и функцию для генерации
+документации.
+"""
 
-__all__ = ("login_user_docs",)
+from .errors_schemas import generate_responses_for_swagger
+
+__all__ = ("generate_responses_for_swagger",)

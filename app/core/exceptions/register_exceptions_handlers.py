@@ -123,7 +123,7 @@ def register_exceptions_handlers(app: FastAPI) -> None:
         return ORJSONResponse(
             status_code=status.HTTP_403_FORBIDDEN,
             content={
-                "message": "Доступ запрещен",
+                "message": "Нарушено ограничение бизнес-логики",
                 "error": str(exc),
             },
         )
