@@ -20,6 +20,7 @@ router = APIRouter()
 @router.post(
     "/{tid}",
     response_model=SubmissionRead,
+    summary="Пометка задания выполненным",
     responses=generate_responses_for_swagger(
         codes=(
             status.HTTP_401_UNAUTHORIZED,
@@ -34,6 +35,11 @@ async def create_submission(
     current_user: Annotated[User, Depends(get_current_user)],
     session: Annotated[AsyncSession, Depends(db_helper.session_getter)],
 ) -> Submission:
+    """
+    ### Эндпоинт пометки задания как выполненное.
+    \nПомечать задания может только член рабочего пространства.
+    """
+
     return await _create_submission(
         session=session,
         task_id=tid,
@@ -44,6 +50,7 @@ async def create_submission(
 @router.delete(
     "/{tid}",
     response_model=SubmissionRead,
+    summary="Удаление пометки задания",
     responses=generate_responses_for_swagger(
         codes=(
             status.HTTP_401_UNAUTHORIZED,
@@ -57,6 +64,11 @@ async def delete_submission(
     current_user: Annotated[User, Depends(get_current_user)],
     session: Annotated[AsyncSession, Depends(db_helper.session_getter)],
 ) -> Submission:
+    """
+    ### Эндпоинт удаления пометки.
+    \nУдалять пометку может только член рабочего пространства.
+    """
+
     return await delete_submission_by_user_id_and_task_id(
         session=session,
         user_id=current_user.id,
