@@ -1,3 +1,5 @@
+"""Модуль, содержащий функции, реализующие CRUD-операции сущности QueueMember."""
+
 from sqlalchemy import Select, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from typing import Optional
@@ -34,6 +36,23 @@ async def complex_queue_member_check(
     current_user_id: int,
     queue_id: int,
 ) -> QueueMember:
+    """
+    Функция, реализующая комплексную проверку доступа к члену очереди.
+
+    Используется в функциях ниже.
+
+    :param session: сессия подключения к БД
+    :param current_user_id: id текущего авторизованного пользователя
+    :param queue_id: id очереди
+    :return: член очереди
+
+    :raises ForeignKeyViolationException: если очередь с таким id не существует
+    :raises NoEntityFoundException: если член очереди с таким current_user_id
+        и queue_id не существует
+    :raises UserIsNotWorkspaceAdminException: если текущий пользователь не
+        является членом рабочего пространства, в котором находится очередь
+    """
+
     # Проверка существования внешнего ключа queue_id
     await check_foreign_key_queue_id(
         session=session,
@@ -70,6 +89,18 @@ async def check_complex_unique_user_id_queue_id(
     user_id: int,
     queue_id: int,
 ) -> None:
+    """
+    Функция, выполняющая проверку уникальности пары значений user_id и
+    queue_id.
+
+    :param session: сессия подключения к БД
+    :param user_id: id пользователя
+    :param queue_id: id очереди
+
+    :raises UniqueConstraintViolationException: если пара значений user_id и
+        queue_id не уникальна
+    """
+
     if await get_queue_member_by_user_id_and_queue_id(
         session=session,
         user_id=user_id,
@@ -90,6 +121,14 @@ async def _get_next_position_in_queue_by_queue_id(
     session: AsyncSession,
     queue_id: int,
 ) -> int:
+    """
+    Функция, вычисляющая следующее значение поля position в очереди.
+
+    :param session: сессия подключения к БД
+    :param queue_id: id очереди
+    :return: следующее значение поля position
+    """
+
     stmt: Select = (
         select(QueueMember.position)
         .where(QueueMember.queue_id == queue_id)
@@ -106,6 +145,23 @@ async def create_queue_member(
     current_user_id: int,
     queue_id: int,
 ) -> QueueMember:
+    """
+    Функция, реализующая создание члена очереди.
+
+    После создания оповещает все активные вебсокеты об изменении очереди.
+
+    :param session: сессия подключения к БД
+    :param current_user_id: id текущего авторизованного пользователя
+    :param queue_id: id очереди
+    :return: объект члена очереди
+
+    :raises ForeignKeyViolationException: если очередь с таким id не существует
+    :raises UserIsNotWorkspaceAdminException: если текущий пользователь не
+        является членом рабочего пространства, в котором находится очередь
+    :raises UniqueConstraintViolationException: если пара значений user_id и
+        queue_id не уникальна
+    """
+
     # --- Ограничения уникальности ---
 
     # Проверка существования внешнего ключа queue_id
@@ -167,6 +223,20 @@ async def get_queue_member_by_user_id_and_queue_id(
     queue_id: int,
     constraint_check: bool = False,
 ) -> Optional[QueueMember]:
+    """
+    Функция, реализующая получение члена очереди по user_id и queue_id.
+
+    :param session: сессия подключения к БД
+    :param user_id: id пользователя
+    :param queue_id: id очереди
+    :param constraint_check: флаг, определяющий вернется ли None, или
+        выбросится исключение
+    :return: объект члена очереди, если он существует, None в противном случае
+
+    :raises NoEntityFoundException: если член очереди с таким user_id и
+        queue_id не существует
+    """
+
     stmt: Select = select(QueueMember).where(
         QueueMember.user_id == user_id,
         QueueMember.queue_id == queue_id,
@@ -184,8 +254,17 @@ async def get_queue_member_by_user_id_and_queue_id(
 
 
 async def get_queue_members_by_queue_id(
-    session: AsyncSession, queue_id: int
+    session: AsyncSession,
+    queue_id: int,
 ) -> list[QueueMember]:
+    """
+    Функция, реализующая получение всех членов очереди по queue_id.
+
+    :param session: сессия подключения к БД
+    :param queue_id: id очереди
+    :return: список членов очереди
+    """
+
     stmt: Select = select(QueueMember).where(QueueMember.queue_id == queue_id)
 
     return list((await session.scalars(stmt)).all())
@@ -199,6 +278,23 @@ async def switch_queue_member_status_by_user_id_and_queue_id(
     current_user_id: int,
     queue_id: int,
 ) -> QueueMember:
+    """
+    Функция, реализующая переключение статуса члена очереди (active/frozen).
+
+    После переключения статуса, оповещает все вебсокеты об изменении очереди.
+
+    :param session: сессия подключения к БД
+    :param current_user_id: id текущего авторизованного пользователя
+    :param queue_id: id очереди
+    :return: обновленный член очереди
+
+    :raises ForeignKeyViolationException: если очередь с таким id не существует
+    :raises NoEntityFoundException: если член очереди с таким current_user_id
+        и queue_id не существует
+    :raises UserIsNotWorkspaceAdminException: если текущий пользователь не
+        является членом рабочего пространства, в котором находится очередь
+    """
+
     # Комплексная проверка доступа
     queue_member: QueueMember = await complex_queue_member_check(
         session=session,
@@ -230,6 +326,25 @@ async def leave_queue_by_user_id_and_queue_id(
     queue_id: int,
     leave_and_mark: bool = False,
 ) -> QueueMember:
+    """
+    Функция, реализующая удаление члена очереди.
+
+    После удаления, оповещает все вебсокеты об изменении очереди.
+
+    :param session: сессия подключения к БД
+    :param current_user_id: id текущего авторизованного пользователя
+    :param queue_id: id очереди
+    :param leave_and_mark: флаг, определяющий помечать ли ближайшее задание
+        как сданное после выхода члена очереди
+    :return: удаленный член очереди
+
+    :raises ForeignKeyViolationException: если очередь с таким id не существует
+    :raises NoEntityFoundException: если член очереди с таким current_user_id
+        и queue_id не существует
+    :raises UserIsNotWorkspaceAdminException: если текущий пользователь не
+        является членом рабочего пространства, в котором находится очередь
+    """
+
     # Комплексная проверка доступа
     queue_member: QueueMember = await complex_queue_member_check(
         session=session,

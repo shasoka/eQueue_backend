@@ -1,3 +1,5 @@
+"""Модуль, содержащий функции, реализующие CRUD-операции сущности User."""
+
 from typing import Optional
 
 from sqlalchemy import select, Select
@@ -29,6 +31,16 @@ async def check_foreign_key_user_id(
     session: AsyncSession,
     user_id: int,
 ) -> None:
+    """
+    Функция, проверяющая внешний ключ user_id.
+
+    :param session: сессия подключения к БД
+    :param user_id: id пользователя в БД
+
+    :raises ForeignKeyViolationException: если пользователь с таким user_id не
+        существует
+    """
+
     if not await get_user_by_id(session, user_id):
         raise ForeignKeyViolationException(
             f"Нарушено ограничение внешнего ключа user_id: "
@@ -47,10 +59,13 @@ async def check_unique_ecourses_id(
     """
     Функция, проверяющая уникальность значения столбца ecourses_id в таблице users.
 
-    :param session: Сессия подключения к БД.
-    :param ecourses_id: Значение столбца ecourses_id.
-    :param on_login: Флаг, указывающий, следует ли функции получения пользователя по
-                     ecourses_id возвращать None или бросать исключение.
+    :param session: сессия подключения к БД
+    :param ecourses_id: значение столбца ecourses_id
+    :param on_login: флаг, указывающий, следует ли функции получения пользователя по
+        ecourses_id возвращать None или бросать исключение.
+
+    :raises UniqueConstraintViolationException: если пользователь с таким
+        ecourses_id уже существует
     """
 
     if await get_user_by_ecourses_id(session, ecourses_id, on_login):
@@ -65,10 +80,23 @@ async def check_unique_access_token(
     access_token: str,
     on_login: bool = False,
 ) -> None:
+    """
+    Функция, проверяющая уникальность значения столбца ecourses_id в таблице users.
+
+    :param session: сессия подключения к БД
+    :param access_token: access_token пользователя
+    :param on_login: флаг, указывающий, следует ли функции получения пользователя по
+        ecourses_id возвращать None или бросать исключение.
+
+    :raises UniqueConstraintViolationException: если пользователь с таким
+        access_token уже существует
+    """
+
     if await get_user_by_access_token(session, access_token, on_login):
         raise UniqueConstraintViolationException(
             "Нарушено ограничение уникальности столбца access_token: "
-            "переданное значение токена уже существует в столбце access_token таблицы users."
+            "переданное значение токена уже существует в столбце access_token "
+            "таблицы users."
         )
 
 
@@ -80,7 +108,16 @@ async def create_user(
     user_in: UserCreate,
 ) -> Optional[User]:
     """
-    Функция создания новой сущностти пользователя. Вызывается при первом входе пользователя в систему.
+    Функция создания новой сущностти пользователя.
+
+    Вызывается при первом входе пользователя в систему.
+
+    :param session: сессия подключения к БД
+    :param user_in: объект pydantic-модели UserCreate
+    :return: созданный пользователь
+
+    :raises UniqueConstraintViolationException: если пользователь с таким
+        access_token/ecourses_id уже существует
     """
 
     # Распаковка pydantic-модели в SQLAlchemy-модель
@@ -114,6 +151,19 @@ async def get_user_by_id(
     id: int,
     constraint_check: bool = True,
 ) -> Optional[User]:
+    """
+    Функция, возвращающая пользователя по его id.
+
+    :param session: сессия подключения к БД
+    :param id: id пользователя в БД
+    :param constraint_check: флаг, определяющий, вернется ли None, или
+        выбросится исключение
+    :return: пользователь, если он существует, иначе None
+
+    :raises NoEntityFoundException: если пользователь с таким id не
+        существует
+    """
+
     if user := await session.get(User, id):
         return user
     elif constraint_check:
@@ -134,10 +184,13 @@ async def get_user_by_ecourses_id(
 
     Возвращает None, если пользователь впервые авторизуется в системе.
 
-    :param session: Сессия подключения к БД.
-    :param ecourses_id: Значение столбца ecourses_id.
-    :param on_login: Флаг, указывающий, следует ли функции возвращать None или
-                     бросать исключение.
+    :param session: сессия подключения к БД
+    :param ecourses_id: значение столбца ecourses_id
+    :param on_login: флаг, указывающий, следует ли функции возвращать None или
+        бросать исключение
+
+    :raises NoEntityFoundException: если пользователь с таким
+        ecourses_id не найден
     """
 
     stmt: Select = select(User).where(User.ecourses_id == ecourses_id)
@@ -156,6 +209,20 @@ async def get_user_by_access_token(
     access_token: str,
     on_login: bool = False,
 ) -> Optional[User]:
+    """
+    Функция, получающая пользователя по значению столбца ecourses_id.
+
+    Возвращает None, если пользователь впервые авторизуется в системе.
+
+    :param session: сессия подключения к БД
+    :param access_token: access_token пользователя
+    :param on_login: флаг, указывающий, следует ли функции возвращать None или
+        бросать исключение
+
+    :raises NoEntityFoundException: если пользователь с таким
+        access_token не найден
+    """
+
     stmt: Select = select(User).where(User.access_token == access_token)
     if user := (await session.scalars(stmt)).one_or_none():
         return user
@@ -175,6 +242,18 @@ async def update_user(
     user: User,
     user_upd: UserUpdate,
 ) -> Optional[User]:
+    """
+    Функция, обновляющая пользователя.
+
+    :param session: сессия подключения к БД
+    :param user: текущий пользователь
+    :param user_upd: объект pydantic-модели UserUpdate
+    :return: обновленный пользователь
+
+    :raises ForeignKeyViolationException: если группы с user_upd["group_id"]
+        не существует
+    """
+
     # Исключение не заданных явно атрибутов
     user_upd: dict = user_upd.model_dump(exclude_unset=True)
 

@@ -1,3 +1,5 @@
+"""Модуль, содержащий функции, реализующие CRUD-операции сущности Task."""
+
 from datetime import datetime
 from typing import Optional
 
@@ -40,6 +42,16 @@ async def check_foreign_key_task_id(
     session: AsyncSession,
     task_id: int,
 ) -> None:
+    """
+    Функция, проверяющая внешний ключ task_id.
+
+    :param session: сессия подключения к БД
+    :param task_id: id задания в БД
+
+    :raises ForeignKeyViolationException: если задание с таким task_id не
+        существует
+    """
+
     if not await get_task_by_id(session, task_id):
         raise ForeignKeyViolationException(
             f"Нарушено ограничение внешнего ключа task_id: "
@@ -55,6 +67,17 @@ async def check_complex_unique_subject_id_name(
     subject_id: int,
     name: str,
 ) -> None:
+    """
+    Функция, проверяющая уникальность пары значений subject_id и name.
+
+    :param session: сессия подключения к БД
+    :param subject_id: id предмета в БД
+    :param name: наименование задания
+
+    :raises UniqueConstraintViolationException: если пара значений
+        subject_id и name уже существует
+    """
+
     if await get_task_by_subject_id_and_name(session, subject_id, name):
         raise UniqueConstraintViolationException(
             f"Нарушено комплексное ограничение уникальности в таблице "
@@ -67,7 +90,21 @@ async def check_if_user_is_permitted_to_get_tasks(
     session: AsyncSession,
     subject_id: int,
     user_id: int = None,
-):
+) -> None:
+    """
+    Функция, проверяющая является ли пользователь, запришивающий задания,
+    членом рабочего пространства, в котором находится данный предмет.
+
+    :param session: сессия подключения к БД
+    :param subject_id: id предмета в БД
+    :param user_id: id пользователя в БД
+
+    :raises NoEntityFoundException: если предмет с таким subject_id не
+        существует
+    :raises UserIsNotWorkspaceMemberException: если текущий пользователь не
+        является членом рабочего пространства, в котором находится предмет
+    """
+
     # Получение предмета
     # None не вернется, т.к. уже был передан task
     _ = await get_subject_by_id(
@@ -84,7 +121,22 @@ async def check_if_user_is_permitted_to_modify_tasks(
     session: AsyncSession,
     subject_id: int,
     user_id: int = None,
-):
+) -> None:
+    """
+    Функция, проверяющая является ли пользователь, запришивающий задания,
+    администратором рабочего пространства, в котором находится данный предмет.
+
+    :param session: сессия подключения к БД
+    :param subject_id: id предмета в БД
+    :param user_id: id пользователя в БД
+
+    :raises NoEntityFoundException: если предмет с таким subject_id не
+        существует
+    :raises UserIsNotWorkspaceMemberException: если текущий пользователь не
+        является администратором рабочего пространства, в котором находится
+        предмет
+    """
+
     # Получение предмета
     # None не вернется, т.к. уже был передан task
     subject: Subject = await get_subject_by_id(
@@ -111,6 +163,24 @@ async def create_tasks(
     subject_id: int,
     user_id: int,
 ) -> list[Task]:
+    """
+    Функция, создающая задания.
+
+    :param session: сессия подключения к БД
+    :param tasks_in: объект pydantic-модели TaskCreate
+    :param subject_id: id предмета в БД
+    :param user_id: id пользователя в БД
+    :return: список созданных заданий.
+
+    :raises ForeignKeyViolationException: если предмет с таким subject_id не
+        существует
+    :raises UserIsNotWorkspaceMemberException: если текущий пользователь не
+        является администратором рабочего пространства, в котором находится
+        предмет
+    :raises UniqueConstraintViolationException: если пара значений
+        subject_id и name уже существует
+    """
+
     # Проверка существования предмета
     await check_foreign_key_subject_id(
         session=session,
@@ -170,6 +240,24 @@ async def get_task_by_id(
     check_membership: bool = False,
     user_id: int = None,
 ) -> Optional[Task]:
+    """
+    Функция, возвращающая задание по его id.
+
+    :param session: сессия подключения к БД
+    :param task_id: id задания в БД
+    :param constraint_check: флаг, определяющий, вернется ли None, или
+        выбросится исключение
+    :param check_membership: флаг, определяющий будет ли произведена проверка
+        является ли пользователь членом рабочего пространства
+    :param user_id: id пользователя в БД
+    :return: задание, если оно существует, иначе None
+
+    :raises NoEntityFoundException: если задание с таким task_id не
+        существует
+    :raises UserIsNotWorkspaceMemberException: если текущий пользователь не
+        является членом рабочего пространства, в котором находится задание
+    """
+
     if task := await session.get(Task, task_id):
         if check_membership:
             # noinspection PyTypeChecker
@@ -188,6 +276,15 @@ async def get_task_by_id(
 async def get_task_by_subject_id_and_name(
     session: AsyncSession, subject_id: int, name: str
 ) -> Optional[Task]:
+    """
+    Функция, возвращающая задание по его subject_id и name.
+
+    :param session: сессия подключения к БД
+    :param subject_id: id предмета в БД
+    :param name: наименование задания
+    :return: задание, если оно существует, иначе None
+    """
+
     stmt: Select = select(Task).where(
         Task.subject_id == subject_id,
         Task.name == name,
@@ -201,6 +298,23 @@ async def get_tasks_from_ecourses(
     target_subject_id: int,
     current_user: User,
 ) -> list[TaskCreate]:
+    """
+    Функция, возвращающая задания с еКурсов.
+
+    :param session: сессия подключения к БД
+    :param target_subject_id: id предмета в БД
+    :param current_user: текущий авторизованный пользователь
+    :return: список распаршенных заданий
+
+    :raises NoEntityFoundException: если предмет с таким target_subject_id не
+        существует
+    :raises UserIsNotWorkspaceMemberException: если текущий пользователь не
+        является администратором рабочего пространства, в котором находится
+        задание
+    :raises UnclassifiedMoodleException: если не удалось получить задания с
+        еКурсов
+    """
+
     # Получение предмета и проверка его существования
     subject: Subject = await get_subject_by_id(
         session=session,
@@ -230,6 +344,20 @@ async def get_tasks_by_subject_id(
     # При получении лидерборда не требуется проверка членства
     current_user: Optional[User] = None,
 ) -> list[Task]:
+    """
+    Функция, возвращающая задания по subject_id.
+
+    :param session: сессия подключения к БД
+    :param subject_id: id предмета в БД
+    :param current_user: текущий авторизованный пользователь
+    :return: список заданий
+
+    :raises NoEntityFoundException: если предмет с таким target_subject_id не
+        существует
+    :raises UserIsNotWorkspaceMemberException: если текущий пользователь не
+        является членом рабочего пространства, в котором находится предмет
+    """
+
     # Получение предмета и проверка его существования
     subject: Subject = await get_subject_by_id(
         session=session,
@@ -239,7 +367,7 @@ async def get_tasks_by_subject_id(
 
     if current_user is not None:
         # Проверка является ли пользователь, запришивающий задания,
-        # администратором рабочего пространства, в котором находится данный предмет
+        # членом рабочего пространства, в котором находится данный предмет
         await check_if_user_is_workspace_member(
             session=session,
             user_id=current_user.id,
@@ -256,6 +384,20 @@ async def get_tasks_by_subject_id_with_submissions(
     subject_id: int,
     current_user: User,
 ) -> list[TaskReadWithSubmission]:
+    """
+    Функция, возвращающая задания по subject_id вместе с фактом их сдачи.
+
+    :param session: сессия подключения к БД
+    :param subject_id: id предмета в БД
+    :param current_user: текущий авторизованный пользователь
+    :return: список заданий
+
+    :raises NoEntityFoundException: если предмет с таким subject_id не
+        существует
+    :raises UserIsNotWorkspaceMemberException: если текущий пользователь не
+        является членом рабочего пространства, в котором находится задание
+    """
+
     # Получение предмета и проверка его существования
     subject: Subject = await get_subject_by_id(
         session=session,
@@ -264,7 +406,7 @@ async def get_tasks_by_subject_id_with_submissions(
     )
 
     # Проверка является ли пользователь, запришивающий задания,
-    # администратором рабочего пространства, в котором находится данный предмет
+    # членом рабочего пространства, в котором находится данный предмет
     await check_if_user_is_workspace_member(
         session=session,
         user_id=current_user.id,
@@ -313,6 +455,24 @@ async def update_task(
     task_id: int,
     current_user_id: int,
 ) -> Task:
+    """
+    Функция, обновляющая задание.
+
+    :param session: сессия подключения к БД
+    :param task_upd: объект pydantic-модели TaskUpdate
+    :param task_id: id задания в БД
+    :param current_user_id: id текущего авторизованного пользователя
+    :return: обновленное задание
+
+    :raises NoEntityFoundException: если задание с таким task_id не
+        существует
+    :raises UserIsNotWorkspaceMemberException: если текущий пользователь не
+        является администратором рабочего пространства, в котором находится
+        задание
+    :raises UniqueConstraintViolationException: если пара значений
+        subject_id и name уже существует
+    """
+
     task: Task = await get_task_by_id(
         session=session,
         task_id=task_id,
@@ -358,6 +518,21 @@ async def delete_task(
     task_id: int,
     current_user_id: int,
 ) -> Task:
+    """
+    Функция, удаляющая задание.
+
+    :param session: сессия подключения к БД
+    :param task_id: id задания в БД
+    :param current_user_id: id текущего авторизованного пользователя
+    :return: удаленное задание
+
+    :raises NoEntityFoundException: если задание с таким task_id не
+        существует
+    :raises UserIsNotWorkspaceMemberException: если текущий пользователь не
+        является администратором рабочего пространства, в котором находится
+        задание
+    """
+
     task: Task = await get_task_by_id(
         session=session,
         task_id=task_id,

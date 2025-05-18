@@ -1,3 +1,5 @@
+"""Модуль, содержащий функции, реализующие CRUD-операции сущности Workspace."""
+
 from typing import Optional
 
 from sqlalchemy import select, Select
@@ -39,6 +41,16 @@ async def check_foreign_key_workspace_id(
     session: AsyncSession,
     workspace_id: int,
 ) -> None:
+    """
+    Функция, проверяющая ограничение внешнего ключа workspace_id.
+
+    :param session: сессия подключения к БД
+    :param workspace_id: id рабочего пространства
+
+    :raises ForeignKeyViolationException: если рабочее пространства не
+        существует
+    """
+
     if not await get_workspace_by_id(session, workspace_id):
         raise ForeignKeyViolationException(
             f"Нарушено ограничение внешнего ключа workspace_id: "
@@ -54,6 +66,17 @@ async def check_complex_unique_group_id_name(
     group_id: int,
     name: str,
 ) -> None:
+    """
+    Функция, проверяющая уникальность пары значений group_id и name.
+
+    :param session: сессия подключения к БД
+    :param group_id: id группы
+    :param name: наименование рабочего пространства
+
+    :raises UniqueConstraintViolationException: если пара значений уже
+        существует
+    """
+
     stmt: Select = select(Workspace).where(
         Workspace.group_id == group_id,
         Workspace.name == name,
@@ -70,6 +93,16 @@ async def check_user_group_id_matches_with_workspace_group_id(
     user_group_id: Optional[int],
     workspace_group_id: int,
 ) -> bool:
+    """
+    Функция, проверяющая соответствие user.group_id и workspace.group_id.
+
+    :param user_group_id: значение group_id у сущности User
+    :param workspace_group_id: значение group_id у сущности Workspace
+    :return: True если параметры равны
+
+    :raises GroupIDMismatchException: если user.group_id != workspace.group_id
+    """
+
     if isinstance(user_group_id, int) and user_group_id == workspace_group_id:
         return True
     raise GroupIDMismatchException(
@@ -86,6 +119,21 @@ async def create_workspace(
     workspace_in: WorkspaceCreate,
     current_user: User,
 ) -> Optional[WorkspaceRead]:
+    """
+    Функция, создающая рабочее пространство.
+
+    :param session: сессия подключения к БД
+    :param workspace_in: объект pydantic-модели WorkspaceCreate
+    :param current_user: текущий авторизованный пользователь
+    :return: созданное рабочее пространство
+
+    :raises GroupIDMismatchException: если user.group_id != workspace.group_id
+    :raises ForeignKeyViolationException: если группы с workspace_in["group_id"]
+        не существует
+    :raises UniqueConstraintViolationException: если пара значений
+        workspace_in["group_id"] и workspace_in["name"] уже существует
+    """
+
     # Распаковка pydantic-модели в SQLAlchemy-модель
     workspace: Workspace = Workspace(**workspace_in.model_dump())
 
@@ -157,6 +205,18 @@ async def get_workspace_by_id(
     workspace_id: int,
     constraint_check: bool = True,
 ) -> Optional[WorkspaceRead]:
+    """
+    Функция, возвращающая рабочее пространство по его id.
+
+    :param session: сессия подключения к БД
+    :param workspace_id: id рабочего пространства
+    :param constraint_check: флаг, определяющий, вернется ли None, или
+        выбросится исключение
+    :return: рабочее пространство, если оно существует, иначе None
+
+    :raises NoEntityFoundException: если рабочее пространство не найдено
+    """
+
     if workspace := await session.get(Workspace, workspace_id):
         # Во избежание циклического импорта
         from .workspace_members import (
@@ -202,6 +262,15 @@ async def get_workspaces_which_user_is_member_of(
     session: AsyncSession,
     user_id: int,
 ) -> list[WorkspaceRead]:
+    """
+    Функция, возвращающая рабочие пространства, в которых пользователь является
+    участником.
+
+    :param session: сессия подключения к БД
+    :param user_id: id пользователя
+    :return: список рабочих пространств, в которых пользователь является членом
+    """
+
     # Во избежание циклического импорта
     from .workspace_members import get_workspace_members_by_user_id
 
@@ -232,6 +301,19 @@ async def update_workspace(
     workspace_upd: WorkspaceUpdate,
     workspace_id: int,
 ) -> Optional[WorkspaceRead]:
+    """
+    Функция, обновляющая рабочее пространство.
+
+    :param session: сессия подключения к БД
+    :param workspace_upd: объект pydantic-модели WorkspaceUpdate
+    :param workspace_id: id рабочего пространства
+    :return: обновленное рабочее пространство
+
+    :raises NoEntityFoundException: если рабочее пространство не существует
+    :raises UniqueViolationException: если пришло имя, которое уже занято в
+        рамках группы
+    """
+
     # Работаем с orm- и pydantic-моделями из-за динамического поля semester
 
     # Исключение не заданных явно атрибутов
@@ -282,6 +364,19 @@ async def delete_workspace(
     user_id: int,
     workspace_id: int,
 ) -> Optional[WorkspaceRead]:
+    """
+    Функция, удаляющая рабочее пространство.
+
+    :param session: сессия подключения к БД
+    :param user_id: id пользователя
+    :param workspace_id: id рабочего пространства
+    :return: удаленное рабочее пространство
+
+    :raises NoEntityFoundException: если рабочее пространство не существует
+    :raises UserIsNotWorkspaceAdminException: если пользователь не является
+        администратором рабочего пространства
+    """
+
     # Получение рабочего пространства включает проверку на его существование
     workspace_pydantic_model: WorkspaceRead = await get_workspace_by_id(
         session,

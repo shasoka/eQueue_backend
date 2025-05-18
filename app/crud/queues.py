@@ -1,3 +1,5 @@
+"""Модуль, содержащий функции, реализующие CRUD-операции сущности Queue."""
+
 from typing import Optional
 
 from sqlalchemy import select, Select
@@ -35,6 +37,17 @@ async def check_foreign_key_queue_id(
     session: AsyncSession,
     queue_id: int,
 ) -> None:
+    """
+    Функция, проверяющая существование внешнего ключа queue_id.
+
+    Используется в CRUD-операциях других сущностей.
+
+    :param session: сессия подключения к БД
+    :param queue_id: id очереди в БД
+
+    :raises ForeignKeyViolationException: если очередь с таким id не существует
+    """
+
     if not await get_queue_by_id(session, queue_id):
         raise ForeignKeyViolationException(
             f"Нарушено ограничение внешнего ключа queue_id: "
@@ -49,6 +62,16 @@ async def check_unique_subject_id(
     session: AsyncSession,
     subject_id: int,
 ) -> None:
+    """
+    Функция, проверяющая уникальность subject_id.
+
+    :param session: сессия подключения к БД
+    :param subject_id: id предмета в БД
+
+    :raises UniqueConstraintViolationException: если предмет с таким id
+        уже существует
+    """
+
     if await get_queue_by_subject_id(session, subject_id):
         raise UniqueConstraintViolationException(
             f"Нарушено ограничение уникальности в таблице queues: "
@@ -64,6 +87,22 @@ async def create_queue(
     current_user_id: int,
     queue_in: QueueCreate,
 ) -> Queue:
+    """
+    Функция, реализующая создание очереди.
+
+    :param session: сессия подключения к БД
+    :param current_user_id: id текущего авторизованного пользователя
+    :param queue_in: объект pydantic-модели QueueCreate
+    :return: созданная очередь
+
+    :raises ForeignKeyViolationException: если предмет с таким subject_id
+        не существует
+    :raises UserIsNotWorkspaceAdminException: если текущий пользователь не
+        является членом рабочего пространства, в котором находится очередь
+    :raises UniqueConstraintViolationException: если предмет с таким subject_id
+        уже существует
+    """
+
     # Распаковка pydantic-модели в SQLAlchemy-модель
     queue: Queue = Queue(**queue_in.model_dump())
 
@@ -106,6 +145,14 @@ async def get_queue_by_id(
     session: AsyncSession,
     queue_id: int,
 ) -> Optional[Queue]:
+    """
+    Функция, возвращающая очередь по id.
+
+    :param session: сессия подключения к БД
+    :param queue_id: id очереди в БД
+    :return: очередь, если она существует, None в противном случае
+    """
+
     return await session.get(Queue, queue_id)
 
 
@@ -113,6 +160,14 @@ async def get_queue_for_ws_message(
     session: AsyncSession,
     queue_id: int,
 ) -> list[dict]:
+    """
+    Функция, реализующая получение членов очереди для отправки по websocket.
+
+    :param session: сессия подключения к БД
+    :param queue_id: id очереди в БД
+    :return: список членов очереди, приведенных к словарям
+    """
+
     # Получение очереди с ее членами
     stmt: Select = (
         select(Queue)
@@ -156,6 +211,28 @@ async def get_queue_by_subject_id(
     check_membership: bool = False,
     user_id: Optional[int] = None,
 ) -> Optional[Queue]:
+    """
+    Функция, возвращающая очередь по subject_id.
+
+    :param session: сессия подключения к БД
+    :param subject_id: id предмета в БД
+    :param constraint_check: флаг, определяющий вернется ли None, или
+        выбросится исключение
+    :param check_admin: флаг, определяющий будет ли произведена проверка на
+        права администратора пользователя
+    :param check_membership: флаг, определяющий будет ли произведена проверка
+        на принадлежность пользователя к рабочему пространству, в котором
+        находится данная очередь
+    :param user_id: id пользователя
+    :return: очередь, если она существует, None в противном случае
+
+    :raises NoEntityFoundException: если очередь с таким subject_id не
+        существует
+    :raises UserIsNotWorkspaceAdminException: если текущий пользователь не
+        является членом рабочего пространства или администратором, в котором
+        находится очередь
+    """
+
     stmt: Select = select(Queue).where(Queue.subject_id == subject_id)
     if queue := (await session.scalars(stmt)).one_or_none():
         if check_admin:
@@ -190,6 +267,24 @@ async def update_queue(
     subject_id: int,
     user_id: int = None,
 ) -> Queue:
+    """
+    Функция, обновляющая объект очереди.
+
+    :param session: сессия подключения к БД
+    :param queue_upd: объект pydantic-модели QueueUpdate
+    :param subject_id: id предмета в БД
+    :param user_id: id пользователя в БД
+    :return: обновленная очередь
+
+    :raises ForeignKeyViolationException: если предмет с таким subject_id
+        не существует
+    :raises UserIsNotWorkspaceAdminException: если текущий пользователь не
+        является администратором рабочего пространства, в котором находится
+        очередь
+    :raises NoEntityFoundException: если очередь с таким subject_id не
+        существует
+    """
+
     # Проверка существования внешнего ключа subject_id
     await check_foreign_key_subject_id(
         session=session,
@@ -226,6 +321,23 @@ async def delete_queue(
     subject_id: int,
     user_id: int = None,
 ) -> Queue:
+    """
+    Функция, удаляющая объект очереди.
+
+    :param session: сессия подключения к БД
+    :param subject_id: id предмета в БД
+    :param user_id: id пользователя в БД
+    :return: удаленная очередь
+
+    :raises ForeignKeyViolationException: если предмет с таким subject_id
+        не существует
+    :raises UserIsNotWorkspaceAdminException: если текущий пользователь не
+        является администратором рабочего пространства, в котором находится
+        очередь
+    :raises NoEntityFoundException: если очередь с таким subject_id не
+        существует
+    """
+
     # Проверка существования внешнего ключа subject_id
     await check_foreign_key_subject_id(
         session=session,

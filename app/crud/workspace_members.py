@@ -1,3 +1,7 @@
+"""
+Модуль, содержащий функции, реализующие CRUD-операции сущности WorkspaceMember.
+"""
+
 from datetime import datetime
 from typing import Literal, Optional
 
@@ -41,6 +45,17 @@ async def check_complex_unique_user_id_workspace_id(
     user_id: int,
     workspace_id: int,
 ) -> None:
+    """
+    Функция, проверяющая уникальность пары значений user_id и workspace_id.
+
+    :param session: сессия подключения к БД
+    :param user_id: id пользователя в БД
+    :param workspace_id: id рабочего пространства в БД
+
+    :raises UniqueConstraintViolationException: если пара значений уже
+        существует
+    """
+
     if await get_workspace_member_by_user_id_and_workspace_id(
         session,
         user_id,
@@ -58,6 +73,18 @@ async def check_if_user_is_workspace_admin(
     user_id: int,
     workspace_id: int,
 ) -> None:
+    """
+    Функция, проверяющая, является ли пользователь администратором рабочего
+    пространства.
+
+    :param session: сессия подключения к БД
+    :param user_id: id пользователя в БД
+    :param workspace_id: id рабочего пространства в БД
+
+    :raises UserIsNotWorkspaceAdminException: если пользователь не является
+        администратором рабочего пространства
+    """
+
     if (
         not (
             member := await get_workspace_member_by_user_id_and_workspace_id(
@@ -79,6 +106,18 @@ async def check_if_user_is_workspace_member(
     user_id: int,
     workspace_id: int,
 ) -> None:
+    """
+    Функция, проверяющая, является ли пользователь членом рабочего
+    пространства.
+
+    :param session: сессия подключения к БД
+    :param user_id: id пользователя в БД
+    :param workspace_id: id рабочего пространства в БД
+
+    :raises UserIsNotWorkspaceAdminException: если пользователь не является
+        членом рабочего пространства
+    """
+
     if not (
         await get_workspace_member_by_user_id_and_workspace_id(
             session,
@@ -99,6 +138,19 @@ async def create_workspace_member(
     session: AsyncSession,
     workspace_member_in: WorkspaceMemberCreate,
 ) -> WorkspaceMember:
+    """
+    Функция, создающая члена рабочего пространства.
+
+    :param session: сессия подключения к БД
+    :param workspace_member_in: объект pydantic-модели WorkspaceMemberCreate
+    :return: созданный член рабочего пространства
+
+    :raises UniqueConstraintViolationException: если пара значений user_id и
+        workspace_id уже существует
+    :raises ForeignKeyViolationException: если внешний ключ
+        user_id/workspace_id не существует
+    """
+
     # Распаковка pydantic-модели в SQLAlchemy-модель
     workspace_member: WorkspaceMember = WorkspaceMember(
         **workspace_member_in.model_dump()
@@ -143,6 +195,21 @@ async def get_workspace_member_by_user_id_and_workspace_id(
     workspace_id: int,
     constraint_check: bool = True,
 ) -> Optional[WorkspaceMember]:
+    """
+    Функция, возвращающая члена рабочего пространства по его user_id и
+    workspace_id.
+
+    :param session: сессия подключения к БД
+    :param user_id: id пользователя в БД
+    :param workspace_id: id рабочего пространства в БД
+    :param constraint_check: флаг, определяющий, вернется ли None, или
+        выбросится исключение
+    :return: член рабочего пространства, если он существует, иначе None
+
+    :raises NoEntityFoundException: если член рабочего пространства не
+        найден
+    """
+
     if workspace_member := (
         await session.scalars(
             select(WorkspaceMember).where(
@@ -165,6 +232,17 @@ async def get_workspace_member_by_id(
     session: AsyncSession,
     workspace_member_id: int,
 ) -> Optional[WorkspaceMember]:
+    """
+    Функция, возвращающая члена рабочего пространства по его id.
+
+    :param session: сессия подключения к БД
+    :param workspace_member_id: id члена рабочего пространства
+    :return: член рабочего пространства, если он существует, иначе None
+
+    :raises NoEntityFoundException: если член рабочего пространства не
+        найден
+    """
+
     if workspace_member := await session.get(
         WorkspaceMember,
         workspace_member_id,
@@ -180,6 +258,14 @@ async def get_workspace_members_by_user_id(
     session: AsyncSession,
     user_id: int,
 ) -> list[WorkspaceMember]:
+    """
+    Функция, возвращающая членов рабочего пространства по user_id.
+
+    :param session: сессия подключения к БД
+    :param user_id: id пользователя в БД
+    :return: список членств пользователя в рабочих пространствах
+    """
+
     return list(
         (
             await session.execute(
@@ -199,6 +285,20 @@ async def get_workspace_members_by_workspace_id_and_status(
     user_id: Optional[int] = None,
     status: Literal["approved", "pending", "rejected", "*"] = "approved",
 ) -> list[WorkspaceMember]:
+    """
+    Функция, возвращающая членов рабочего пространства по workspace_id и
+    status.
+
+    :param session: сессия подключения к БД
+    :param workspace_id: id рабочего пространства в БД
+    :param user_id: id пользователя в БД
+    :param status: статус члена рабочего пространства
+    :return: список членов рабочего пространства
+
+    :raises ForeignKeyViolationException: если workspace_id не существует
+    :raises UserIsNotWorkspaceAdminException: если пользователь не является
+        администратором рабочего пространства
+    """
 
     # Проверка существования внешнего ключа workspace_id
 
@@ -243,6 +343,14 @@ async def get_workspace_members_count_by_workspace_id(
     session: AsyncSession,
     workspace_id: int,
 ) -> int:
+    """
+    Функция, возвращающая количество членов рабочего пространства.
+
+    :param session: сессия подключения к БД
+    :param workspace_id: id рабочего пространства
+    :return: количество членов рабочего пространства
+    """
+
     stmt: Select = (
         select(func.count())
         .select_from(WorkspaceMember)
@@ -257,6 +365,22 @@ async def get_workspace_members_leaderboard_by_subject_submissions_count(
     user_id: int,
     subject_id: Optional[int] = None,
 ) -> list[WorkspaceMemberLeaderboardEntry]:
+    """
+    Функция, возвращающая лидерборд членов рабочего пространства.
+
+    :param session: сессия подключения к БД
+    :param workspace_id: id рабочего пространства
+    :param user_id: id пользователя
+    :param subject_id: id предмета
+    :return: лидерборд членов рабочего пространства
+
+    :raises UserIsNotWorkspaceMemberException: если пользователь не является
+        членом рабочего пространства
+    :raises ForeignKeyViolationException: если workspace_id не существует
+    :raises SubjectIsOutOfWorkspaceException: если предмет не принадлежит
+        рабочему пространству
+    """
+
     # Проверка того, что пользователь, запрашивающий лидерборд, является
     # членом данного рабочего пространства
     await check_if_user_is_workspace_member(
@@ -377,6 +501,22 @@ async def update_workspace_member(
     workspace_member_id: int,
     current_user_id: int,
 ) -> WorkspaceMember:
+    """
+    Функция, обновляющая члена рабочего пространства.
+
+    :param session: сессия подключения к БД
+    :param workspace_member_upd: объект pydantic-модели WorkspaceMemberUpdate
+    :param workspace_member_id: id члена рабочего пространства
+    :param current_user_id: id текущего авторизованного пользователя
+    :return: обновленный член рабочего пространства
+
+    :raises NoEntityFoundException: если член рабочего пространства не
+        найден
+    :raises UserIsNotWorkspaceMemberException: если текущий пользователь не
+        является администратором рабочего пространства, в котором находится
+        член
+    """
+
     # --- Ограничения уникальности ---
 
     workspace_member: WorkspaceMember = await get_workspace_member_by_id(
@@ -418,6 +558,24 @@ async def delete_workspace_member(
     workspace_member_id: int,
     current_user_id: int,
 ) -> WorkspaceMember:
+    """
+    Функция, удаляющая члена рабочего пространства.
+
+    После удаления члена, удаляет связанные записи в таблицах submissions и
+    queue_members.
+
+    :param session: сессия подключения к БД
+    :param workspace_member_id: id члена рабочего пространства
+    :param current_user_id: id текущего авторизованного пользователя
+    :return: удаленный пользователь
+
+    :raises NoEntityFoundException: если член рабочего пространства не
+        найден
+    :raises UserIsNotWorkspaceMemberException: если текущий пользователь не
+        является администратором рабочего пространства, в котором находится
+        член
+    """
+
     workspace_member: WorkspaceMember = await get_workspace_member_by_id(
         session=session,
         workspace_member_id=workspace_member_id,

@@ -1,7 +1,6 @@
 from .business_logic_exceptions import (
     AdminSuicideException,
     GroupIDMismatchException,
-    SubmissionForbiddenException,
     SubjectIsOutOfWorkspaceException,
     UserIsNotWorkspaceAdminException,
 )
@@ -25,7 +24,6 @@ __all__ = (
     "GroupIDMismatchException",
     "NoEntityFoundException",
     "register_exceptions_handlers",
-    "SubmissionForbiddenException",
     "SubjectIsOutOfWorkspaceException",
     "UnclassifiedMoodleException",
     "UnexpectedWebsocketException",
