@@ -414,7 +414,8 @@ async def delete_subject(
     :raises NoEntityFoundException: если предмет с таким subject_id не
         существует
     :raises UserIsNotWorkspaceMemberException: если текущий пользователь не
-        является членом рабочего пространства, в котором находится предмет
+        является администратором рабочего пространства, в котором находится
+        предмет
     """
 
     subject: Subject = await get_subject_by_id(
