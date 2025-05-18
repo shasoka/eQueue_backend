@@ -1,3 +1,5 @@
+"""Модуль, реализующий pydantic-схемы для сущности QueueMember."""
+
 from datetime import datetime
 from typing import Literal, Optional
 
@@ -10,6 +12,8 @@ __all__ = (
 
 
 class QueueMemberBase(BaseModel):
+    """Базовая схема для сущности QueueMember."""
+
     user_id: int
     queue_id: int
     position: int
@@ -17,10 +21,17 @@ class QueueMemberBase(BaseModel):
 
 
 class QueueMemberRead(QueueMemberBase):
+    """
+    Схема чтения сущности QueueMember.
+    Унаследована от базовой схемы QueueMemberBase.
+    """
+
     id: int
     entered_at: datetime
 
 
 class QueueMemberUpdate(BaseModel):
+    """Схема обновления сущности QueueMember."""
+
     position: Optional[int] = None
     status: Optional[Literal["active", "frozen"]] = None

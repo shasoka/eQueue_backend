@@ -1,3 +1,5 @@
+"""Модуль, реализующий pydantic-схемы для сущности Workspace."""
+
 from datetime import datetime
 from typing import Optional
 
@@ -13,11 +15,15 @@ __all__ = (
 
 
 class WorkspaceBase(BaseModel):
+    """Базовая схема сущности Workspace."""
+
     group_id: int
     name: str255
 
 
 class WorkspaceRead(WorkspaceBase):
+    """Схема чтения сущности Workspace."""
+
     id: int
     semester: int
     members_count: int
@@ -26,8 +32,15 @@ class WorkspaceRead(WorkspaceBase):
 
 
 class WorkspaceCreate(WorkspaceBase):
+    """
+    Схема создания сущности Workspace.
+    Унаследована от базовой схемы WorkspaceBase.
+    """
+
     pass
 
 
 class WorkspaceUpdate(BaseModel):
+    """Схема обновления сущности Workspace."""
+
     name: Optional[str255] = None

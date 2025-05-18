@@ -1,3 +1,5 @@
+"""Модуль, содержащий конфигурацию приложения."""
+
 from pydantic import BaseModel, PostgresDsn
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
@@ -5,11 +7,15 @@ __all__ = ("settings",)
 
 
 class Run(BaseModel):
+    """Класс, содержащий параметры запуска приложения."""
+
     host: str = "0.0.0.0"
     port: int = 8000
 
 
 class ApiUsers(BaseModel):
+    """Класс, содержащий параметры API для работы с пользователями."""
+
     prefix: str = "/users"
     tags: list[str] = ["Users"]
 
@@ -21,11 +27,15 @@ class ApiUsers(BaseModel):
 
 
 class ApiGroups(BaseModel):
+    """Класс, содержащий параметры API для работы с группами."""
+
     prefix: str = "/groups"
     tags: list[str] = ["Groups"]
 
 
 class ApiWorkspaces(BaseModel):
+    """Класс, содержащий параметры API для работы с рабочими пространствами."""
+
     prefix: str = "/workspaces"
     tags: list[str] = ["Workspaces"]
 
@@ -35,6 +45,10 @@ class ApiWorkspaces(BaseModel):
 
 
 class ApiWorkspaceMembers(BaseModel):
+    """
+    Класс, содержащий параметры API для работы с членами рабочих пространств.
+    """
+
     prefix: str = "/workspace_members"
     tags: list[str] = ["Workspace Members"]
 
@@ -45,6 +59,8 @@ class ApiWorkspaceMembers(BaseModel):
 
 
 class ApiSubjects(BaseModel):
+    """Класс, содержащий параметры API для работы с предметами."""
+
     prefix: str = "/subjects"
     tags: list[str] = ["Subjects"]
 
@@ -55,6 +71,8 @@ class ApiSubjects(BaseModel):
 
 
 class ApiTasks(BaseModel):
+    """Класс, содержащий параметры API для работы с заданиями."""
+
     prefix: str = "/tasks"
     tags: list[str] = ["Tasks"]
 
@@ -66,6 +84,8 @@ class ApiTasks(BaseModel):
 
 
 class ApiSubmissions(BaseModel):
+    """Класс, содержащий параметры API для работы со сданными заданиями."""
+
     prefix: str = "/submissions"
     tags: list[str] = ["Submissions"]
 
@@ -75,11 +95,15 @@ class ApiSubmissions(BaseModel):
 
 
 class ApiQueues(BaseModel):
+    """Класс, содержащий параметры API для работы с очередями."""
+
     prefix: str = "/queues"
     tags: list[str] = ["Queues"]
 
 
 class ApiQueueMembers(BaseModel):
+    """Класс, содержащий параметры API для работы с членами очередей."""
+
     prefix: str = "/queue_members"
     tags: list[str] = ["Queue Members"]
 
@@ -89,10 +113,14 @@ class ApiQueueMembers(BaseModel):
 
 
 class ApiWebsocket(BaseModel):
+    """Класс, содержащий параметры API для работы с вебсокетами."""
+
     prefix: str = "/ws/queue"
 
 
 class ApiBase(BaseModel):
+    """Класс, содержащий базовые параметры API."""
+
     prefix: str = "/api"
     tags: list[str] = ["eQueue Api"]
 
@@ -115,6 +143,8 @@ class ApiBase(BaseModel):
 
 
 class MoodleAPI(BaseModel):
+    """Класс, содержащий url-адреса эндпоинтов API еКурсов."""
+
     ecourses_base_url: str = "https://e.sfu-kras.ru/webservice/rest/server.php"
 
     auth_url: str = (
@@ -159,7 +189,9 @@ class MoodleAPI(BaseModel):
 
 
 class Database(BaseModel):
-    url: PostgresDsn
+    """Класс, содержащий параметры подключения к базе данных."""
+
+    url: PostgresDsn  # подтягивается из .env
     echo: bool = False
     echo_pool: bool = False
     max_overflow: int = 50
@@ -175,6 +207,8 @@ class Database(BaseModel):
 
 
 class Settings(BaseSettings):
+    """Базовый класс конфигурации приложения."""
+
     model_config = SettingsConfigDict(
         case_sensitive=False,
         env_nested_delimiter="__",

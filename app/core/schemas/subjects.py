@@ -1,3 +1,5 @@
+"""Модуль, реализующий pydantic-схемы для сущности Subject."""
+
 from typing import Optional
 
 from pydantic import BaseModel
@@ -13,6 +15,8 @@ __all__ = (
 
 
 class SubjectBase(BaseModel):
+    """Базовая схема сущности Subject."""
+
     workspace_id: int
     ecourses_id: Optional[int]
     ecourses_link: Optional[str255]
@@ -23,6 +27,8 @@ class SubjectBase(BaseModel):
 
 
 class SubjectCreate(BaseModel):
+    """Схема создания сущности Subject."""
+
     # Поле workspace_id может быть None в случае ручного создания предметов.
     # Если предметы создаются после запроса курсов, то worksapce_id будет
     # иметь числовое значение, равное id рабочего пространства, для которого
@@ -38,10 +44,17 @@ class SubjectCreate(BaseModel):
 
 
 class SubjectRead(SubjectBase):
+    """
+    Схема чтения сущности Subject.
+    Унаследована от SubjectBase.
+    """
+
     id: int
 
 
 class EcoursesSubjectDescription(BaseModel):
+    """Схема для данных о предмете, приходящих с еКурсов."""
+
     id: Optional[int]
     shortname: Optional[str255]
     fullname: Optional[str255]
@@ -52,6 +65,8 @@ class EcoursesSubjectDescription(BaseModel):
 
 
 class SubjectUpdate(BaseModel):
+    """Схема обновления сущности Subject."""
+
     ecourses_link: Optional[str255] = None
     professor_name: Optional[str255] = None
     professor_contact: Optional[str255] = None

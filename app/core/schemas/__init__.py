@@ -1,3 +1,5 @@
+"""Пакет, содержащий pydantic-схемы для сущностей."""
+
 from typing import Annotated
 
 from pydantic import StringConstraints
