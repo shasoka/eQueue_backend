@@ -1,0 +1,39 @@
+version: '3.8'
+
+services:
+  fastapi:
+    build: .
+    container_name: equeue_backend
+    ports:
+      - "8000:8000"
+    depends_on:
+      db:
+        condition: service_healthy
+    networks:
+      - backend
+
+  db:
+    image: postgres:16
+    container_name: equeue_db
+    environment:
+      POSTGRES_USER: shasoka
+      POSTGRES_PASSWORD: itythuFHRFLBQ3124234
+      POSTGRES_DB: equeue
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    ports:
+      - "6270:5432"
+    networks:
+      - backend
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U shasoka -d equeue" ]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  postgres_data:
+
+networks:
+  backend:
+    driver: bridge
