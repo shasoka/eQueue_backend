@@ -169,6 +169,8 @@ class MoodleAPI(BaseModel):
 
     timetable_url: str = "https://edu.sfu-kras.ru/api/timetable/get_insts"
 
+    course_url: str = "https://e.sfu-kras.ru/course/view.php?id=%s"
+
     enrolled_courses_url: str = (
         "https://e.sfu-kras.ru/webservice/rest/server.php"
         "?wstoken=%s"
