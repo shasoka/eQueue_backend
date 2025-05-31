@@ -177,8 +177,6 @@ class MoodleAPI(BaseModel):
         "&userid=%s"
     )
 
-    course_url: str = "https://e.sfu-kras.ru/course/view.php?id=%s"
-
     course_structure_url: str = (
         "https://e.sfu-kras.ru/webservice/rest/server.php"
         "?wstoken=%s"

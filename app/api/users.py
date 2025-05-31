@@ -142,6 +142,34 @@ async def am_i_alive(
 
 
 @router.get(
+    "/{id}",
+    response_model=UserRead,
+    summary="Получение информации о пользователе по ID",
+    responses=generate_responses_for_swagger(
+        codes=(
+            status.HTTP_401_UNAUTHORIZED,
+            status.HTTP_404_NOT_FOUND,
+        ),
+    ),
+)
+async def get_user_info_by_id(
+    id: int,
+    _: Annotated[User, Depends(get_current_user)],
+    session: Annotated[AsyncSession, Depends(db_helper.session_getter)],
+) -> Optional[UserRead]:
+    """
+    ### Эндпоинт для получения информации о пользователе по ID.
+    \nВозвращает информацию о запрашиваемом пользователе, если пользователь, запрашивающий информацию авторизован.
+    """
+
+    return await _get_user_by_id(
+        session=session,
+        id=id,
+        constraint_check=False,
+    )
+
+
+@router.get(
     "",
     response_model=UserRead,
     summary="Получение информации о текущем пользователе",
