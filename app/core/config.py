@@ -57,6 +57,7 @@ class ApiWorkspaceMembers(BaseModel):
 
     all: str = "/all"
     leaderboard: str = "/leaderboard"
+    leave: str = "/leave"
 
 
 class ApiSubjects(BaseModel):

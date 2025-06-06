@@ -600,15 +600,16 @@ async def delete_workspace_member(
         workspace_member_id=workspace_member_id,
     )
 
-    # Проверка является ли пользователь, удаляющий члена рабочего
-    # пространства, его администратором
-    await check_if_user_is_workspace_admin(
-        session=session,
-        user_id=current_user_id,
-        workspace_id=workspace_member.workspace_id,
-    )
+    if current_user_id != workspace_member.user_id:
+        # Проверка является ли пользователь, удаляющий члена рабочего
+        # пространства, его администратором
+        await check_if_user_is_workspace_admin(
+            session=session,
+            user_id=current_user_id,
+            workspace_id=workspace_member.workspace_id,
+        )
 
-    # Проверка удаления администратора
+        # Проверка удаления администратора
     if workspace_member.is_admin:
         raise AdminSuicideException(
             f"Член рабочего пространства с id={workspace_member.id} "
