@@ -16,6 +16,7 @@ from crud.workspaces import (
     get_workspace_by_id as _get_workspace_by_id,
     update_workspace,
     get_workspaces_which_user_is_member_of as _get_workspaces_which_user_is_member_of,
+    get_available_workspaces as _get_available_workspaces,
 )
 from docs import generate_responses_for_swagger
 from moodle.auth import get_current_user
@@ -69,12 +70,35 @@ async def get_workspaces_which_user_is_member_of(
 ) -> list[WorkspaceRead]:
     """
     ### Эндпоинт получения списка рабочих пространств, в которых текуший пользователь является участником.
-    \nВозвращаемый список содержит все рабочие пространства, независимо от статуса пользователя в них.
+    \nВозвращаемый список содержит все рабочие пространства, в которых статус пользователя равен 'approved'.
     """
 
     return await _get_workspaces_which_user_is_member_of(
         session=session,
         user_id=current_user.id,
+    )
+
+
+@router.get(
+    settings.api.workspaces.available,
+    response_model=list[WorkspaceRead],
+    summary="Получение списка доступных рабочих пространств",
+    responses=generate_responses_for_swagger(
+        codes=(status.HTTP_401_UNAUTHORIZED,)
+    ),
+)
+async def get_available_workspaces(
+    current_user: Annotated[User, Depends(get_current_user)],
+    session: Annotated[AsyncSession, Depends(db_helper.session_getter)],
+) -> list[WorkspaceRead]:
+    """
+    ### Эндпоинт получения списка доступных для вступления рабочих пространств.
+    \nВозвращаемый список содержит все рабочие пространства, связаные с той же группой, которая установлена у пользователя. Из результирующего списка исключаются рабочие пространства, в которых заявка пользователя еще не одобрена.
+    """
+
+    return await _get_available_workspaces(
+        session=session,
+        current_user=current_user,
     )
 
 

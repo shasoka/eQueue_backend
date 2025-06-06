@@ -293,6 +293,65 @@ async def get_workspaces_which_user_is_member_of(
     return workspaces
 
 
+async def get_available_workspaces(
+    session: AsyncSession,
+    current_user: User,
+) -> list[WorkspaceRead]:
+    """
+    Возвращает рабочие пространства с таким же group_id, как у пользователя,
+    в которых пользователь НЕ состоит вообще (нет записи в workspace_members).
+
+    :param session: сессия подключения к БД
+    :param current_user: текущий пользователь
+    :return: список доступных рабочих пространств
+    """
+
+    subquery = (
+        select(WorkspaceMember.workspace_id)
+        .where(WorkspaceMember.user_id == current_user.id)
+        .subquery()
+    )
+
+    stmt = select(Workspace).where(
+        Workspace.group_id == current_user.group_id,
+        Workspace.id.not_in(
+            select(subquery)
+        ),  # исключаем рабочие пространства, где есть запись
+    )
+
+    workspaces = (await session.scalars(stmt)).all()
+
+    result: list[WorkspaceRead] = []
+    for ws in workspaces:
+        group = await get_group_by_id(
+            session,
+            ws.group_id,
+            constraint_check=False,
+        )
+        semester = extract_semester_from_group_name(group.name)
+
+        from .workspace_members import (
+            get_workspace_members_count_by_workspace_id,
+        )
+
+        result.append(
+            WorkspaceRead(
+                id=ws.id,
+                group_id=ws.group_id,
+                name=ws.name,
+                semester=semester,
+                members_count=await get_workspace_members_count_by_workspace_id(
+                    session=session,
+                    workspace_id=ws.id,
+                ),
+                created_at=ws.created_at,
+                updated_at=ws.updated_at,
+            )
+        )
+
+    return result
+
+
 # --- Update ---
 
 

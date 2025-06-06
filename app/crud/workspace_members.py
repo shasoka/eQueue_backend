@@ -284,7 +284,8 @@ async def get_workspace_members_by_user_id(
         (
             await session.execute(
                 select(WorkspaceMember).where(
-                    WorkspaceMember.user_id == user_id
+                    WorkspaceMember.user_id == user_id,
+                    WorkspaceMember.status == "approved",
                 )
             )
         )
@@ -368,7 +369,10 @@ async def get_workspace_members_count_by_workspace_id(
     stmt: Select = (
         select(func.count())
         .select_from(WorkspaceMember)
-        .where(WorkspaceMember.workspace_id == workspace_id)
+        .where(
+            WorkspaceMember.workspace_id == workspace_id,
+            WorkspaceMember.status == "approved",
+        )
     )
     return (await session.execute(stmt)).scalar_one()
 

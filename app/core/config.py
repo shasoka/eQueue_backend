@@ -42,6 +42,7 @@ class ApiWorkspaces(BaseModel):
     # --- Endpoints ---
 
     subscribed: str = "/subscribed"
+    available: str = "/available"
 
 
 class ApiWorkspaceMembers(BaseModel):
