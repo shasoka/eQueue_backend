@@ -103,9 +103,7 @@ async def login_user(
         user = await update_user(
             session=session,
             user=registered_user,
-            user_upd=UserUpdate(
-                access_token=access_token,
-            ),
+            user_upd=UserUpdate(**(user_info.model_dump())),
         )
 
     # Возвращаем пользователя с access_token и token_type

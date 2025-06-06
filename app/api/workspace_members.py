@@ -185,7 +185,7 @@ async def partial_update_workspace_member(
 
 
 @router.delete(
-    "/id",
+    "/{id}",
     response_model=WorkspaceMemberRead,
     summary="Удаление члена рабочего пространства по ID",
     responses=generate_responses_for_swagger(

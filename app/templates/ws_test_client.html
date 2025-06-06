@@ -95,8 +95,8 @@
             }
         }
 
-        function connectWebSocket(subjectId, token) {
-            websocket = new WebSocket(`${wsUrl}/${subjectId}?token=${token}`);
+        function connectWebSocket(queueId, token) {
+            websocket = new WebSocket(`${wsUrl}/${queueId}?token=${token}`);
             websocket.onopen = () => {
                 console.log('WebSocket открыт');
                 websocket.send('get_queue');
@@ -137,7 +137,7 @@
 
         document.addEventListener('DOMContentLoaded', function() {
             if (localStorage.getItem('token')) {
-                const subjectId = prompt("Введите ID предмета:");
+                const subjectId = prompt("Введите ID очереди:");
                 if (subjectId) {
                     connectWebSocket(subjectId, localStorage.getItem('token'));
                 }

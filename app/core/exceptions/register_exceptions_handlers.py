@@ -72,7 +72,7 @@ def register_exceptions_handlers(app: FastAPI) -> None:
         return ORJSONResponse(
             status_code=status.HTTP_409_CONFLICT,
             content={
-                "message": "Наруешние ограничения внешнего ключа / сущность не "
+                "message": "Нарушение ограничения внешнего ключа / сущность не "
                 "найдена",
                 "error": str(exc),
             },

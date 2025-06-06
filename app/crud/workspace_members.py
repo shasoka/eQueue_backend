@@ -496,12 +496,13 @@ async def get_workspace_members_leaderboard_by_subject_submissions_count(
                     ):
                         member.submissions_count += 1
 
-    # Сортировка по количеству заданий и имени
+    # Сортировка по количеству заданий, фамилии и имени
     return sorted(
         leaderboard,
         key=lambda entry: (
             -entry.submissions_count,
             entry.second_name.lower(),
+            entry.first_name.lower(),
         ),
     )
 

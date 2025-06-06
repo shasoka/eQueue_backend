@@ -24,7 +24,7 @@ _CODES_DESCRIPTIONS: dict[int, dict[str, str]] = {
     },
     status.HTTP_409_CONFLICT: {
         "description": "Resource conflict",
-        "message": "Наруешние ограничения внешнего ключа / Нарушено ограничение уникальности / Нарушено ограничение бизнес-логики",
+        "message": "Нарушение ограничения внешнего ключа / Нарушено ограничение уникальности / Нарушено ограничение бизнес-логики",
         "error": "...",
     },
 }
@@ -65,7 +65,7 @@ def generate_error_content_block_for_swagger(
 
 
 def generate_responses_for_swagger(
-    codes: Union[tuple[int, ...], tuple[Any, ...]]
+    codes: Union[tuple[int, ...], tuple[Any, ...]],
 ) -> dict[int, dict[str, Any]]:
     """
     Функция, возвращающая словарь со схемами ошибок для Swagger UI.
