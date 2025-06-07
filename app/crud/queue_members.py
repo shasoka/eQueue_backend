@@ -135,7 +135,7 @@ async def _get_next_position_in_queue_by_queue_id(
         .order_by(QueueMember.position.desc())
     )
 
-    last_position: Optional[int] = (await session.scalars(stmt)).one_or_none()
+    last_position: Optional[int] = (await session.scalars(stmt)).first()
 
     return 0 if last_position is None else last_position + 1
 
