@@ -22,7 +22,7 @@ class SubjectBase(BaseModel):
     ecourses_link: Optional[str255]
     professor_name: Optional[str255]
     professor_contact: Optional[str255]
-    professor_requirements: Optional[str255]
+    professor_requirements: Optional[str]
     name: str255
 
 
@@ -39,7 +39,7 @@ class SubjectCreate(BaseModel):
     ecourses_link: Optional[str255]
     professor_name: Optional[str255]
     professor_contact: Optional[str255]
-    professor_requirements: Optional[str255]
+    professor_requirements: Optional[str]
     name: str255
 
 
@@ -70,5 +70,5 @@ class SubjectUpdate(BaseModel):
     ecourses_link: Optional[str255] = None
     professor_name: Optional[str255] = None
     professor_contact: Optional[str255] = None
-    professor_requirements: Optional[str255] = None
+    professor_requirements: Optional[str] = None
     name: Optional[str255] = None
